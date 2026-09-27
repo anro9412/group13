@@ -45,6 +45,7 @@ PROJECT_EXCLUDES = {
     ".DS_Store",
     "Thumbs.db",
     "Desktop.ini",
+    "typings"
 }
 
 

@@ -9,7 +9,6 @@ from debug_log import log
 
 from secrets import WIFI_SSID, WIFI_PASSWORD
 
-
 class Application:
     def __init__(self):
         self.display, self.touch, self.handler = start_board()
@@ -47,6 +46,11 @@ class Application:
         self.tile1_label.center()
         self.apply_tile_colors(self.tile1, self.tile1_label, True)
 
+        self.button = lv.button(self.tile1)
+        self.button.align(lv.ALIGN.TOP_LEFT, 0, 0)
+        self.button_label = lv.label(self.button)
+        self.button_label.set_text("TEAM 67!")
+
         self.tile2_label = lv.label(self.tile2)
         self.tile2_label.set_text("Welcome to the workshop!")
         self.tile2_label.set_style_text_font(lv.font_montserrat_28, 0)
@@ -54,8 +58,7 @@ class Application:
         self.apply_tile_colors(self.tile2, self.tile2_label, False)
         self.tile2.add_flag(lv.obj.FLAG.CLICKABLE)
         self.tile2.add_event_cb(
-            self.on_tile2_clicked, lv.EVENT.CLICKED, None
-        )
+            self.on_tile2_clicked, lv.EVENT.CLICKED, None)
 
     @staticmethod
     def connect_wifi():
