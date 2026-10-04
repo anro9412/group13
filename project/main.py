@@ -60,6 +60,7 @@ class Application:
         self.tile2.add_event_cb(
             self.on_tile2_clicked, lv.EVENT.CLICKED, None)
 
+
     @staticmethod
     def connect_wifi():
         'Function: Connects to WiFi'
