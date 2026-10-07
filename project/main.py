@@ -6,60 +6,24 @@ import network
 
 from board_lvgl import start_board
 from debug_log import log
-
 from secrets import WIFI_SSID, WIFI_PASSWORD
+from traffic_display.assets import load_icons, load_fonts
+from traffic_display.controls import Controls
 
 class Application:
     def __init__(self):
+        self.display = self.touch = self.handler = None
+        # Load image resources
+        load_icons()
         self.display, self.touch, self.handler = start_board()
-        self.tile2_dark = False
+        load_fonts()
         self.create_ui()
         self.connect_wifi()
         log("student application ready")
 
-    @staticmethod
-    def apply_tile_colors(tile, label, dark):
-        tile.set_style_bg_opa(lv.OPA.COVER, 0)
-        tile.set_style_bg_color(
-            lv.color_hex(0x000000 if dark else 0xFFFFFF), 0
-        )
-        label.set_style_text_color(
-            lv.color_hex(0xFFFFFF if dark else 0x000000), 0
-        )
-
-    def on_tile2_clicked(self, _event):
-        self.tile2_dark = not self.tile2_dark
-        self.apply_tile_colors(self.tile2, self.tile2_label, self.tile2_dark)
-
     def create_ui(self):
-        'Function: Creates UI'
-        self.tileview = lv.tileview(lv.screen_active())
-        self.tileview.set_size(600, 450)
-        self.tileview.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
-
-        self.tile1 = self.tileview.add_tile(0, 0, lv.DIR.RIGHT)
-        self.tile2 = self.tileview.add_tile(1, 0, lv.DIR.LEFT)
-
-        self.tile1_label = lv.label(self.tile1)
-        self.tile1_label.set_text("Hello Team 67!")
-        self.tile1_label.set_style_text_font(lv.font_montserrat_28, 0)
-        self.tile1_label.center()
-        self.apply_tile_colors(self.tile1, self.tile1_label, True)
-
-        self.button = lv.button(self.tile1)
-        self.button.align(lv.ALIGN.TOP_LEFT, 0, 0)
-        self.button_label = lv.label(self.button)
-        self.button_label.set_text("TEAM 67!")
-
-        self.tile2_label = lv.label(self.tile2)
-        self.tile2_label.set_text("Welcome to the workshop!")
-        self.tile2_label.set_style_text_font(lv.font_montserrat_28, 0)
-        self.tile2_label.center()
-        self.apply_tile_colors(self.tile2, self.tile2_label, False)
-        self.tile2.add_flag(lv.obj.FLAG.CLICKABLE)
-        self.tile2.add_event_cb(
-            self.on_tile2_clicked, lv.EVENT.CLICKED, None)
-
+        """Function: Creates UI"""
+        self.ui = Controls(self.display, self.touch, self.handler)
 
     @staticmethod
     def connect_wifi():
@@ -75,10 +39,28 @@ class Application:
         log("Wi-Fi connected" if station.isconnected()
             else "Wi-Fi could not connect (timeout)")
 
+    @staticmethod
+    def show_error(error):
+        """Function: Shows startup errors on the display when possible."""
+        try:
+            screen = lv.screen_active()
+            screen.clean()
+            screen.set_style_bg_color(lv.color_hex(0x000000), 0)
+            screen.set_style_bg_opa(lv.OPA.COVER, 0)
+            label = lv.label(screen)
+            label.set_width(552)
+            label.set_style_text_font(lv.font_montserrat_20, 0)
+            label.set_style_text_color(lv.color_hex(0xFFFFFF), 0)
+            label.set_text("Startup failed: %r\nSee Serial Monitor." % error)
+            label.center()
+        except Exception:
+            pass
+
 
 try:
     app = Application()
 except Exception as error:
     log("FATAL: %r" % (error,))
     sys.print_exception(error)
+    Application.show_error(error)
     raise
