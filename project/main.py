@@ -10,6 +10,7 @@ from secrets import WIFI_SSID, WIFI_PASSWORD
 from traffic_display.assets import load_icons, load_fonts
 from traffic_display.controls import Controls
 
+
 class Application:
     def __init__(self):
         self.display = self.touch = self.handler = None
