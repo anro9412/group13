@@ -67,6 +67,14 @@ alone.
 
 ---
 
+## Saving settings
+
+On the Settings screen, choose a transport and stop, then select **Save** to
+store them as the defaults on the device. **Reset** restores those saved
+defaults; before the first save, it uses the factory defaults. The settings
+survive a restart, but flashing the Python application rebuilds the device
+filesystem and clears saved settings.
+
 # What to add where
 
 Your code belongs in the `/project` folder. The only place you should add, change, or remove things from is the [**/project**](project/main.py) folder. Changing anything else might break the code and cause a lot of headaches for all involved parties.

@@ -120,13 +120,25 @@ def settings(controls, page):
     # Settings title X/Y
     controls.label(page, 'Settings', 24, 72, 552, 'LV_FONT_MONTSERRAT_28')
     # Preferences X/Y
-    controls.label(page, 'Preferences for this session', 24, 106, 552, 'SPECIAL_LETTER_MONTSERRAT_14', controls.muted)
+    controls.label(page, 'Choose preferences, then Save to keep them', 24, 106, 552, 'SPECIAL_LETTER_MONTSERRAT_14', controls.muted)
     # Reset button
-    reset = controls.panel(page, 512, 78, 64, 30, radius=15)
+    reset = controls.panel(page, 438, 78, 64, 30, radius=15)
     # Reset text
     controls.label(reset, 'Reset', 0, 8, 64, 'SPECIAL_LETTER_MONTSERRAT_14', controls.muted, True)
     # Reset tap action
     controls.click(reset, controls.reset)
+    # Save button
+    save = controls.panel(page, 510, 78, 66, 30, radius=15)
+    saved = controls.settings_message == 'Settings saved'
+    if saved:
+        save.set_style_bg_color(lv.color_hex(controls.settings_message_color), 0)
+        save.set_style_bg_opa(lv.OPA.COVER, 0)
+        save.set_style_border_color(
+            lv.color_hex(controls.settings_message_color), 0)
+    controls.label(save, 'Saved' if saved else 'Save', 0, 8, 66,
+                   'SPECIAL_LETTER_MONTSERRAT_14',
+                   controls.text if saved else controls.secondary, True)
+    controls.click(save, controls.save_settings)
     # Transport heading
     controls.section(page, 'TRANSPORT TYPE', 135)
     # Transport selector
@@ -163,6 +175,18 @@ def settings(controls, page):
     controls.icon(r, 'right', 530, 20, controls.muted)
     # Open Terms screen
     controls.click(r, lambda: controls.change('terms_open', True))
+    if controls.settings_message:
+        notice = controls.panel(page, 24, 376, 552, 38, radius=8)
+        notice.set_style_bg_color(
+            lv.color_hex(controls.blend(controls.settings_message_color, 32)),
+            0)
+        notice.set_style_border_color(
+            lv.color_hex(controls.settings_message_color), 0)
+        notice_label = controls.label(
+            notice, controls.settings_message, 12, 10, 526,
+            'SPECIAL_LETTER_MONTSERRAT_14',
+            controls.text if saved else controls.settings_message_color, True)
+        notice_label.set_width(526)
 
 
 # ----- SETTINGS: TERMS & CONDITIONS -----
@@ -196,4 +220,3 @@ def terms(controls, page):
         h = 32 + controls.paragraph(c, text, 12, 32, 528, 'SPECIAL_LETTER_MONTSERRAT_14', controls.secondary) + 12
         c.set_height(h)
         y += h + 8
-
