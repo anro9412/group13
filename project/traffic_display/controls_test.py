@@ -269,7 +269,7 @@ class Controls:
             self.stop_id = ids[0] if ids else None
         self.stop = next((stop['name'] for stop in self.stops
                           if stop['id'] == self.stop_id), 'Select stop')
-        self.departures = api.get_ui_departures(kind, self.stop_id) if ids else []
+        self.departures = api.get_departures(kind, self.stop_id) if ids else []
         self.status = api.STATUS
 
     def change(self, key, value):

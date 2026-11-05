@@ -43,4 +43,3 @@ def get_departures(transport, stop_id):
 
     return [row for row in departures
             if transport in ("all", row["kind"])]
-
