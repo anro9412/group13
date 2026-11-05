@@ -1,7 +1,13 @@
+import errno
+import json
+
 import lvgl as lv
 from traffic_display import screens, api
 from traffic_display.assets import ICONS, LABEL_DOTS, LABEL_WRAP, get_font
 from traffic_display.assets import TRANSPORT_COLORS, TRANSPORT_KINDS, TRANSPORT_NAMES
+
+
+SETTINGS_FILE = '/settings.json'
 
 
 class Controls:
@@ -75,8 +81,7 @@ class Controls:
 
     def click(self, o, fn):
         o.add_flag(lv.obj.FLAG.CLICKABLE)
-        # Attach tap callback.
-        o.add_event_cb(lambda e: fn() if abs(self.delta) < 10 else None, lv.EVENT.CLICKED, None)
+        o.add_event_cb(lambda _event: fn(), lv.EVENT.CLICKED, None)
 
 
     def scroll(self, o):
@@ -205,36 +210,11 @@ class Controls:
                        'SPECIAL_LETTER_MONTSERRAT_14', self.muted)
 
 
-    # --- SWIPE PREVIEW ---
-    def pointer(self, e):
-        if self.terms_open or self.menu:
-            return
-        indev = lv.indev_active()
-        if not indev:
-            return
-        p = lv.point_t()
-        indev.get_point(p)
-        code = e.get_code()
-        if code == lv.EVENT.PRESSED:
-            self.start = (p.x, p.y)
-            self.lock = 0
-            self.delta = 0
-        elif code == lv.EVENT.PRESSING and self.start:
-            dx, dy = (p.x - self.start[0], p.y - self.start[1])
-            if not self.lock and max(abs(dx), abs(dy)) > 6:
-                self.lock = 1 if abs(dx) >= abs(dy) else 2
-            if self.lock == 1:
-                self.delta = dx
-                self.pages.set_x(max(-1200, min(0, -600 * self.page + dx)))
-        elif code in (lv.EVENT.RELEASED, lv.EVENT.PRESS_LOST) and self.start:
-            if self.lock == 1:
-                dx = p.x - self.start[0]
-                if dx < -150:
-                    self.page = min(2, self.page + 1)
-                elif dx > 150:
-                    self.page = max(0, self.page - 1)
-            self.start = None
-            self.pages.set_x(-600 * self.page)
+    def tile_changed(self, _event):
+        tile = self.tileview.get_tile_active()
+        page = tile.get_index()
+        if page < len(self.page_tiles) and page != self.page:
+            self.page = page
             self.update_dots()
 
 
@@ -251,12 +231,16 @@ class Controls:
     # Screen switch
     def __init__(self, display, touch, handler):
         self.display, self.touch, self.handler = (display, touch, handler)
-        self.page, self.mode, self.dark = (0, 0, True)
-        self.stop_id = None
+        self.page, self.dark = (0, True)
+        self.default_mode, self.default_stop_id = (0, None)
+        self.settings_message = ''
+        self.settings_message_color = 0
+        self.load_settings()
+        self.mode, self.stop_id = (self.default_mode, self.default_stop_id)
         self.load_data()
+        self.default_stop_id = self.stop_id
         # menu: 0 = closed, 1 = transport dropdown, 2 = stop dropdown.
         self.terms_open, self.menu = (False, 0)
-        self.start = None
         # Top-level screen
         self.screen = lv.obj()
         self.screen.remove_style_all()
@@ -296,46 +280,105 @@ class Controls:
         # Only transport/stop selections request a new data snapshot.
         setattr(self, key, value)
         if key in ('mode', 'stop_id'):
+            self.settings_message = ''
             self.load_data()
         self.menu = 0
         self.request()
 
+    def load_settings(self):
+        try:
+            with open(SETTINGS_FILE, 'r') as source:
+                saved = json.load(source)
+        except OSError as error:
+            if error.args and error.args[0] == errno.ENOENT:
+                return
+            self.settings_message = 'Could not load saved settings: %s' % error
+            self.settings_message_color = 16749824
+            return
+        except ValueError as error:
+            self.settings_message = 'Invalid saved settings: %s' % error
+            self.settings_message_color = 16749824
+            return
+        try:
+            if not isinstance(saved, dict):
+                raise ValueError('Saved settings must be a JSON object')
+            mode = saved.get('mode')
+            stop_id = saved.get('stop_id')
+            if type(mode) is not int or mode < 0 or mode >= len(self.kinds):
+                raise ValueError('Saved transport setting is invalid')
+            if stop_id is not None and not isinstance(stop_id, str):
+                raise ValueError('Saved stop setting is invalid')
+        except ValueError as error:
+            self.settings_message = 'Invalid saved settings: %s' % error
+            self.settings_message_color = 16749824
+            return
+        self.default_mode, self.default_stop_id = (mode, stop_id)
+
+    def save_settings(self):
+        saved = {'mode': self.mode, 'stop_id': self.stop_id}
+        serialized = json.dumps(saved)
+        try:
+            with open(SETTINGS_FILE, 'w') as destination:
+                destination.write(serialized)
+        except OSError as error:
+            self.settings_message = 'Could not save settings: %s' % error
+            self.settings_message_color = 16749824
+        else:
+            self.default_mode, self.default_stop_id = (
+                self.mode, self.stop_id)
+            self.settings_message = 'Settings saved'
+            self.settings_message_color = 0x00C9A7
+        self.request()
 
     def reset(self):
-        self.mode = 0
-        self.change('stop_id', None)
+        self.mode = self.default_mode
+        self.change('stop_id', self.default_stop_id)
 
 
     def draw(self):
         # Rebuild the three pages using the current state and theme.
-        self.delta = 0
-        self.start = None
         self.bg, self.card, self.border, self.text, self.secondary, self.muted = (789516, 1579035, 2565930, 16777215, 10461097, 5395036) if self.dark else (15921911, 16777215, 15000807, 789516, 5395036, 10592682)
         self.screen.clean()
         self.screen.set_style_bg_color(lv.color_hex(self.bg), 0)
         self.screen.set_style_bg_opa(lv.OPA.COVER, 0)
         # Whole-screen background
         self.root = self.box(self.screen, 0, 0, 600, 450, self.bg, 0)
-        self.root.add_flag(lv.obj.FLAG.CLICKABLE)
         self.root.set_style_clip_corner(False, 0)
-        self.root.add_event_cb(self.pointer, lv.EVENT.ALL, None)
         if self.terms_open:
             # Terms screen content
             screens.terms(self, self.root)
             # Header with Back button
             self.header(self.root, True)
         else:
-            # Horizontal page container
-            self.pages = self.box(self.root, -600 * self.page, 0, 1800, 450, self.bg)
-            for i, show_screen in enumerate((screens.home, screens.departures, screens.settings)):
-                # Welcome / Departures / Settings page
-                p = self.box(self.pages, 600 * i, 0, 600, 450, self.bg)
-                p.add_flag(lv.obj.FLAG.CLICKABLE)
-                show_screen(self, p)
+            # Native LVGL horizontal tile navigation.
+            self.tileview = lv.tileview(self.root)
+            self.tileview.remove_style_all()
+            self.tileview.set_pos(0, 0)
+            self.tileview.set_size(600, 450)
+            self.tileview.set_style_bg_color(lv.color_hex(self.bg), 0)
+            self.tileview.set_style_bg_opa(lv.OPA.COVER, 0)
+            self.tileview.set_style_pad_all(0, 0)
+            self.tileview.set_scrollbar_mode(lv.SCROLLBAR_MODE.OFF)
+            directions = (lv.DIR.RIGHT, lv.DIR.LEFT | lv.DIR.RIGHT, lv.DIR.LEFT)
+            self.page_tiles = [
+                self.tileview.add_tile(index, 0, directions[index])
+                for index in range(3)
+            ]
+            for tile in self.page_tiles:
+                tile.set_style_bg_color(lv.color_hex(self.bg), 0)
+                tile.set_style_bg_opa(lv.OPA.COVER, 0)
+                tile.set_style_pad_all(0, 0)
+            for tile, show_screen in zip(
+                    self.page_tiles,
+                    (screens.home, screens.departures, screens.settings)):
+                show_screen(self, tile)
+            self.tileview.set_tile_by_index(self.page, 0, 0)
+            self.tileview.add_event_cb(
+                self.tile_changed, lv.EVENT.VALUE_CHANGED, None)
             # Main header and theme switch
             self.header(self.root)
             # Bottom page indicators
-            self.dots = [self.box(self.root, 0, 430, 7, 6, self.border, 3) for i in range(3)]
+            self.dots = [self.box(self.root, 0, 430, 7, 6, self.border, 3) for _ in range(3)]
             self.update_dots()
             if self.menu:
                 # Open dropdown overlay
