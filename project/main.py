@@ -8,7 +8,7 @@ from board_lvgl import start_board
 from debug_log import log
 from secrets import WIFI_SSID, WIFI_PASSWORD
 from traffic_display.assets import load_icons, load_fonts
-from traffic_display.controls import Controls
+from traffic_display.controls_test import Controls
 
 
 class Application:
@@ -18,8 +18,8 @@ class Application:
         load_icons()
         self.display, self.touch, self.handler = start_board()
         load_fonts()
-        self.create_ui()
         self.connect_wifi()
+        self.create_ui()
         log("student application ready")
 
     def create_ui(self):

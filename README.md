@@ -84,12 +84,15 @@ Your code belongs in the `/project` folder. The only place you should add, chang
 The T4-S3 has built-in Wi-Fi, but it cannot connect to eduroam. Use another
 network or a phone hotspot.
 
-Add or modify the `project/secrets.py` file, then set the SSID
-(network name) and password.
+Copy `project/secrets_example.py` to `project/secrets.py`, then set the SSID
+(network name), password, and Trafiklab API key. The local `secrets.py` file
+is excluded from Git and will be copied to the device when you flash the
+Python application.
 
 ```python
 WIFI_SSID      = "SSID"
 WIFI_PASSWORD  = "PWD"
+TRAFIKLAB_API_KEY = "YOUR_TRAFIKLAB_API_KEY"
 ```
 
 Never commit real credentials to GitHub. `project/secrets.py` is excluded by
