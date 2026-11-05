@@ -50,6 +50,20 @@ def get_platform(bus):
     return None
 
 
+def clean_destination(value):
+    destination = (value or "").strip()
+    for separator in ("", " ", ", ", " - "):
+        repeated_length = len(destination) - len(separator)
+        if repeated_length > 0 and repeated_length % 2 == 0:
+            half = repeated_length // 2
+            first = destination[:half]
+            middle = destination[half:half + len(separator)]
+            second = destination[half + len(separator):]
+            if middle == separator and first.strip() == second.strip():
+                return first.strip()
+    return destination
+
+
 def format_departure(bus):
     route = bus["route"]
 
@@ -62,7 +76,7 @@ def format_departure(bus):
     if platform:
         departure["platform"] = platform
 
-    departure["destination"] = route.get("direction") or ""
+    departure["destination"] = clean_destination(route.get("direction"))
 
     delay = bus.get("delay") or 0
     if delay >= 60:

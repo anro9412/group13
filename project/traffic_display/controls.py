@@ -141,6 +141,11 @@ class Controls:
             self.icon(h, 'logo_28', 24, 17, self.text)
             # App wordmark
             self.brand(h, 62, 18, 'LV_FONT_MONTSERRAT_20')
+        # Wi-Fi status indicator
+        self.wifi_dot = self.box(h, 416, 27, 8, 8, radius=4)
+        self.wifi_label = self.label(
+            h, '', 430, 22, 152, 'SPECIAL_LETTER_MONTSERRAT_14')
+        self.update_wifi_status()
         # Theme switch box
         #t = self.box(h, 522, 16, 54, 30, self.border if self.dark else 13160672, 15)
         # Sun / moon icon
@@ -229,8 +234,11 @@ class Controls:
 
 
     # Screen switch
-    def __init__(self, display, touch, handler):
+    def __init__(self, display, touch, handler, wifi_station=None,
+                 wifi_name=''):
         self.display, self.touch, self.handler = (display, touch, handler)
+        self.wifi_station, self.wifi_name = (wifi_station, wifi_name)
+        self.wifi_connected = None
         self.page, self.dark = (0, True)
         self.default_mode, self.default_stop_id = (0, None)
         self.settings_message = ''
@@ -249,6 +257,7 @@ class Controls:
         self.timer = lv.timer_create(self.redraw, 1, None)
         self.timer.pause()
         self.draw()
+        self.wifi_timer = lv.timer_create(self.update_wifi_status, 1000, None)
 
 
     def request(self):
@@ -261,6 +270,22 @@ class Controls:
         # Redraw only after a prototype interaction.
         timer.pause()
         self.draw()
+
+    def update_wifi_status(self, _timer=None):
+        connected = (self.wifi_station is not None and
+                     self.wifi_station.isconnected())
+        self.wifi_connected = connected
+        if connected:
+            color = 0x00C853
+            text = self.wifi_name
+            text_color = self.text
+        else:
+            color = 0x888888
+            text = 'No Wifi'
+            text_color = self.muted
+        self.wifi_dot.set_style_bg_color(lv.color_hex(color), 0)
+        self.wifi_label.set_text(text)
+        self.wifi_label.set_style_text_color(lv.color_hex(text_color), 0)
 
 
     # --- DATA DISPLAY INTERFACE ---

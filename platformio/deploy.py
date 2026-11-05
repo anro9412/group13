@@ -41,11 +41,17 @@ SUPPORT_FILES = [
 PROJECT_EXCLUDES = {
     "pio_upload_stub.c",
     "secrets_example.py",
+    "main_test.py",
     "__pycache__",
     ".DS_Store",
     "Thumbs.db",
     "Desktop.ini",
     "typings"
+}
+
+PROJECT_FILE_EXCLUDES = {
+    "api_test.py",
+    "controls_test.py",
 }
 
 
@@ -66,6 +72,7 @@ def copy_project_tree():
     for source_path in PROJECT_SOURCE.rglob("*"):
         relative = source_path.relative_to(PROJECT_SOURCE)
         if (any(part in PROJECT_EXCLUDES for part in relative.parts) or
+                relative.name in PROJECT_FILE_EXCLUDES or
                 source_path.suffix in (".pyc", ".pyo")):
             continue
         destination = VFS_ROOT / relative

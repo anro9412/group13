@@ -8,7 +8,7 @@ from board_lvgl import start_board
 from debug_log import log
 from secrets import WIFI_SSID, WIFI_PASSWORD
 from traffic_display.assets import load_icons, load_fonts
-from traffic_display.controls_test import Controls
+from traffic_display.controls import Controls
 
 
 class Application:
@@ -18,13 +18,14 @@ class Application:
         load_icons()
         self.display, self.touch, self.handler = start_board()
         load_fonts()
-        self.connect_wifi()
+        self.station = self.connect_wifi()
         self.create_ui()
         log("student application ready")
 
     def create_ui(self):
         """Function: Creates UI"""
-        self.ui = Controls(self.display, self.touch, self.handler)
+        self.ui = Controls(
+            self.display, self.touch, self.handler, self.station, WIFI_SSID)
 
     @staticmethod
     def connect_wifi():
@@ -39,6 +40,7 @@ class Application:
             time.sleep_ms(250)
         log("Wi-Fi connected" if station.isconnected()
             else "Wi-Fi could not connect (timeout)")
+        return station
 
     @staticmethod
     def show_error(error):
