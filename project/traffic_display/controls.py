@@ -8,6 +8,12 @@ from traffic_display.assets import TRANSPORT_COLORS, TRANSPORT_KINDS, TRANSPORT_
 
 
 SETTINGS_FILE = '/settings.json'
+WIFI_DOT_X = 574
+WIFI_LABEL_X = 410
+WIFI_LABEL_MAX_WIDTH = 152
+WIFI_LABEL_GAP = 12
+WIFI_HEADER_RIGHT_MARGIN = 18
+WIFI_NAME_MAX_LENGTH = 32
 
 
 class Controls:
@@ -142,9 +148,17 @@ class Controls:
             # App wordmark
             self.brand(h, 62, 18, 'LV_FONT_MONTSERRAT_20')
         # Wi-Fi status indicator
-        self.wifi_dot = self.box(h, 416, 27, 8, 8, radius=4)
+        self.wifi_dot = self.box(h, WIFI_DOT_X, 27, 8, 8, radius=4)
         self.wifi_label = self.label(
-            h, '', 430, 22, 152, 'SPECIAL_LETTER_MONTSERRAT_14')
+            h, '', WIFI_LABEL_X, 22, WIFI_LABEL_MAX_WIDTH,
+            'SPECIAL_LETTER_MONTSERRAT_14')
+        self.wifi_label.set_width(min(
+            WIFI_LABEL_MAX_WIDTH,
+            max(0, WIFI_DOT_X - WIFI_LABEL_X - WIFI_LABEL_GAP)))
+        self.wifi_label.set_long_mode(LABEL_DOTS)
+        self.wifi_label.set_style_text_align(lv.TEXT_ALIGN.RIGHT, 0)
+        self.wifi_dot.set_pos(
+            min(WIFI_DOT_X, h.get_width() - 8 - WIFI_HEADER_RIGHT_MARGIN), 27)
         self.update_wifi_status()
         # Theme switch box
         #t = self.box(h, 522, 16, 54, 30, self.border if self.dark else 13160672, 15)
@@ -277,7 +291,7 @@ class Controls:
         self.wifi_connected = connected
         if connected:
             color = 0x00C853
-            text = self.wifi_name
+            text = self.wifi_name[:WIFI_NAME_MAX_LENGTH]
             text_color = self.text
         else:
             color = 0x888888
