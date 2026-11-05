@@ -340,5 +340,3 @@ class Controls:
             if self.menu:
                 # Open dropdown overlay
                 self.draw_menu()
-
-
