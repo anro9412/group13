@@ -1,5 +1,5 @@
 import lvgl as lv
-from traffic_display import screens, api_trafiklab as api
+from traffic_display import screens, api_test as api
 from traffic_display.assets import ICONS, LABEL_DOTS, LABEL_WRAP, get_font
 from traffic_display.assets import TRANSPORT_COLORS, TRANSPORT_KINDS, TRANSPORT_NAMES
 
