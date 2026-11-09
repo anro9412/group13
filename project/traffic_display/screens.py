@@ -1,9 +1,13 @@
 import lvgl as lv
+
 from traffic_display.assets import APP_VERSION
 
 # ----- HOME SCREEN -----
 
-def home(controls, page):
+def home(controls, page) -> None:
+    """Draw the welcome page and introductory app/team information."""
+    # The page is intentionally a fixed-coordinate layout sized for the
+    # landscape display; Controls helpers apply the shared typography and theme.
     # Welcome text X/Y.
     controls.label(page, 'Welcome', 24, 72, 552, 'LV_FONT_MONTSERRAT_28')
     # Region text X/Y.
@@ -28,7 +32,10 @@ def home(controls, page):
 
 # ----- DEPARTURES SCREEN -----
 
-def departures(controls, page):
+def departures(controls, page) -> None:
+    """Draw the selected stop's departure table and its data-status indicator."""
+    # The transport selection drives the accent color throughout this page so
+    # the stop chip, table header, line badges, and row labels stay coordinated.
     # Departures title X/Y
     controls.label(page, 'Departures', 24, 72, 552, 'LV_FONT_MONTSERRAT_28')
     # Transport / stop X/Y
@@ -73,6 +80,8 @@ def departures(controls, page):
             # Original delayed time
             old = controls.label(r, d['time'], 14, 9, 54, 'LV_FONT_MONTSERRAT_12', controls.muted)
             old.set_style_text_decor(lv.TEXT_DECOR.STRIKETHROUGH, 0)
+            # Add the rounded delay in minutes to the scheduled clock time,
+            # wrapping at midnight so the displayed value remains HH:MM.
             hh, mm = [int(v) for v in d['time'].split(':')]
             mins = (hh * 60 + mm + delay) % 1440
             # New delayed time
@@ -86,6 +95,8 @@ def departures(controls, page):
             # Train number
             controls.label(r, d.get('train_number', ''), 68, 25, 64, 'SPECIAL_LETTER_MONTSERRAT_14', controls.secondary, True)
         else:
+            # Bus/ferry lines use a compact badge sized to the rendered text,
+            # bounded so all badges remain aligned within the line column.
             # Measure bus/ferry line
             measure = controls.label(r, d['line'], 0, 0, font='SPECIAL_LETTER_MONTSERRAT_14')
             measure.update_layout()
@@ -116,7 +127,10 @@ def departures(controls, page):
 
 # ----- SETTINGS SCREEN -----
 
-def settings(controls, page):
+def settings(controls, page) -> None:
+    """Draw preference controls, persistence actions, and the terms link."""
+    # Widget callbacks update the shared Controls state; Controls then reloads
+    # affected data and schedules a redraw after LVGL finishes the event.
     # Settings title X/Y
     controls.label(page, 'Settings', 24, 72, 552, 'LV_FONT_MONTSERRAT_28')
     # Preferences X/Y
@@ -191,7 +205,7 @@ def settings(controls, page):
 
 # ----- SETTINGS: TERMS & CONDITIONS -----
 # Terms & Condition text 1 -> n.
-TERMS = [
+TERMS: list[tuple[str, str]] = [
     ('1. ', ''),
     ('2. ', ''),
     ('3. ', ''),
@@ -201,7 +215,10 @@ TERMS = [
     ('7. ', ''),
 ]
 
-def terms(controls, page):
+def terms(controls, page) -> None:
+    """Draw the scrollable terms page from the configured title/text entries."""
+    # Each entry is laid out sequentially; paragraph's measured height lets
+    # longer terms grow without overlapping the next card.
     # Terms title X/Y
     controls.label(page, 'Terms & Conditions', 24, 72, 552, 'LV_FONT_MONTSERRAT_28')
     # Last updated X/Y

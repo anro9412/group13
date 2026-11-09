@@ -1,9 +1,9 @@
 from traffic_display import api_trafiklab
 
 
-STATUS = 'Live data from Trafiklab'
+STATUS: str = 'Live data from Trafiklab'
 
-STOPS = {
+STOPS: dict[str, list[dict[str, str]]] = {
     'bus': [
         {'id': '740098084', 'name': 'Karlskrona C'},
         {'id': '740032188', 'name': 'Campus Gräsvik'},
@@ -24,10 +24,13 @@ STOPS = {
 }
 
 
-def get_stops(transport):
+def get_stops(transport: str) -> list[dict[str, str]]:
+    """Return unique supported stops for one transport or for all transports. """
+
     if transport != 'all':
         return STOPS.get(transport, [])
     result = []
+    # Compare complete stop records so shared IDs and names appear only once.
     for stops in STOPS.values():
         for stop in stops:
             if stop not in result:
@@ -35,8 +38,15 @@ def get_stops(transport):
     return result
 
 
-def get_departures(transport, stop_id):
-    data = api_trafiklab.get_data(stop_id)
-    departures = api_trafiklab.format_all_departures(data)
-    return [row for row in departures
-            if transport in ('all', row['kind'])]
+def get_departures(transport: str, stop_id: str) -> list:
+    """Fetch and normalize a stop's departures, then filter by transport."""
+    data: list = api_trafiklab.get_data(stop_id)
+    departures: list = api_trafiklab.format_all_departures(data)
+
+    filtered_departures: list = []
+
+    for departure in departures:
+        if transport == 'all' or transport == departure['kind']:
+            filtered_departures.append(departure)
+
+    return filtered_departures

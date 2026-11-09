@@ -12,7 +12,10 @@ from traffic_display.controls import Controls
 
 
 class Application:
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize hardware, resources, connectivity, and the application UI."""
+        # Initialize assets around board setup: icons are prepared before the
+        # display starts, while the custom font is loaded after its filesystem.
         self.display = self.touch = self.handler = None
         # Load image resources
         load_icons()
@@ -22,30 +25,37 @@ class Application:
         self.create_ui()
         log("student application ready")
 
-    def create_ui(self):
-        """Function: Creates UI"""
-        self.ui = Controls(
+    def create_ui(self) -> None:
+        """Create the Controls instance that owns the app's screens and state."""
+        self.ui: Controls = Controls(
             self.display, self.touch, self.handler, self.station, WIFI_SSID)
 
     @staticmethod
-    def connect_wifi():
-        'Function: Connects to WiFi'
-        log("connecting to Wi-Fi SSID: " + WIFI_SSID)
-        station = network.WLAN(network.STA_IF)
-        station.active(True)
-        station.connect(WIFI_SSID, WIFI_PASSWORD)
-        started = time.ticks_ms()
-        while (not station.isconnected() and
-               time.ticks_diff(time.ticks_ms(), started) < 15_000):
-            time.sleep_ms(250)
-        log("Wi-Fi connected" if station.isconnected()
-            else "Wi-Fi could not connect (timeout)")
+    def connect_wifi() -> network.WLAN | None:
+        """Connect to the configured Wi-Fi network and return its station object.
+
+        Wait for at most 15 seconds so startup can continue even when the network
+        is unavailable; the returned object can still report later connectivity.
+        """
+        try:
+            station = network.WLAN(network.STA_IF)
+            station.active(True)
+            station.connect(WIFI_SSID, WIFI_PASSWORD)
+            # Use short sleeps to periodically check the connection.
+            started = time.ticks_ms()
+            while (not station.isconnected() and
+                   time.ticks_diff(time.ticks_ms(), started) < 15_000):
+                time.sleep_ms(250)
+        except OSError:
+            return None
         return station
 
     @staticmethod
-    def show_error(error):
-        """Function: Shows startup errors on the display when possible."""
+    def show_error(error: Exception) -> None:
+        """Show a startup error on the active display when LVGL is available."""
         try:
+            # Replace any partially initialized screen with a simple readable
+            # message; serial logging remains the fallback if display setup fails.
             screen = lv.screen_active()
             screen.clean()
             screen.set_style_bg_color(lv.color_hex(0x000000), 0)
@@ -61,7 +71,7 @@ class Application:
 
 
 try:
-    app = Application()
+    app: Application = Application()
 except Exception as error:
     log("FATAL: %r" % (error,))
     sys.print_exception(error)

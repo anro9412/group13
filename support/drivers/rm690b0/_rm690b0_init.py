@@ -4,7 +4,7 @@ import time
 import lvgl as lv
 
 
-def init(self):
+def init(self) -> None:
     buf = self._param_buf
     mv = self._param_mv
 

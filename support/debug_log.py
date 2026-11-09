@@ -3,10 +3,10 @@
 import time
 
 
-LOG_PATH = "/debug.log"
+LOG_PATH: str = "/debug.log"
 
 
-def reset_log():
+def reset_log() -> None:
     try:
         with open(LOG_PATH, "w") as stream:
             stream.write("[BOOT] diagnostic log started\n")
@@ -14,7 +14,7 @@ def reset_log():
         pass
 
 
-def log(message):
+def log(message: str) -> None:
     line = "[%010d] %s" % (time.ticks_ms(), message)
     print(line)
     try:

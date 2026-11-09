@@ -66,7 +66,7 @@ def require(path, description):
         raise RuntimeError("Missing %s: %s" % (description, path))
 
 
-def copy_project_tree():
+def copy_project_tree() -> None:
     """Copy student files recursively while preserving their relative paths."""
     require(PROJECT_SOURCE / "main.py", "project/main.py")
     for source_path in PROJECT_SOURCE.rglob("*"):
@@ -83,7 +83,7 @@ def copy_project_tree():
             shutil.copy2(source_path, destination)
 
 
-def build_app_fs(source=None, target=None, env=None):
+def build_app_fs(source=None, target=None, env=None) -> None:
     require(MKFATFS, "PlatformIO mkfatfs tool")
     require(FIRMWARE, "course MicroPython firmware")
     _offset, vfs_size = find_vfs_partition(FIRMWARE)
@@ -138,17 +138,17 @@ def run_esptool(images):
     subprocess.run(command, check=True)
 
 
-def flash_micropython(source=None, target=None, env=None):
+def flash_micropython(source=None, target=None, env=None) -> None:
     run_esptool([("0x0", FIRMWARE)])
 
 
-def flash_app(source=None, target=None, env=None):
+def flash_app(source=None, target=None, env=None) -> None:
     build_app_fs()
     vfs_offset, _vfs_size = find_vfs_partition(FIRMWARE)
     run_esptool([(hex(vfs_offset), VFS_DEPLOY_IMAGE)])
 
 
-def deploy_all(source=None, target=None, env=None):
+def deploy_all(source=None, target=None, env=None) -> None:
     build_app_fs()
     vfs_offset, _vfs_size = find_vfs_partition(FIRMWARE)
     run_esptool([

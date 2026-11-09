@@ -7,26 +7,30 @@ from traffic_display.assets import ICONS, LABEL_DOTS, LABEL_WRAP, get_font
 from traffic_display.assets import TRANSPORT_COLORS, TRANSPORT_KINDS, TRANSPORT_NAMES
 
 
-SETTINGS_FILE = '/settings.json'
-WIFI_DOT_X = 574
-WIFI_LABEL_X = 410
-WIFI_LABEL_MAX_WIDTH = 152
-WIFI_LABEL_GAP = 12
-WIFI_HEADER_RIGHT_MARGIN = 18
-WIFI_NAME_MAX_LENGTH = 32
+SETTINGS_FILE: str = '/settings.json'
+WIFI_DOT_X: int = 574
+WIFI_LABEL_X: int = 410
+WIFI_LABEL_MAX_WIDTH: int = 152
+WIFI_LABEL_GAP: int = 12
+WIFI_HEADER_RIGHT_MARGIN: int = 18
+WIFI_NAME_MAX_LENGTH: int = 32
 
 
 class Controls:
-    names = TRANSPORT_NAMES
-    kinds = TRANSPORT_KINDS
-    accents = TRANSPORT_COLORS
+    names: tuple[str, ...] = TRANSPORT_NAMES
+    kinds: tuple[str, ...] = TRANSPORT_KINDS
+    accents: tuple[int, ...] = TRANSPORT_COLORS
 
     # --- DRAWING HELPERS ---
     def blend(self, color, alpha):
+        """Mix an RGB color with the current card color using an opacity value."""
+        # Blend each 8-bit channel independently; alpha=255 keeps the requested
+        # color and alpha=0 returns the card background.
         return sum((((color >> s & 255) * alpha + (self.card >> s & 255) * (255 - alpha)) // 255 << s for s in (0, 8, 16)))
 
 
     def box(self, parent, x, y, w, h, color=None, radius=0, outline=False):
+        """Create a non-scrollable LVGL container with shared app styling."""
         # Rectangle
         o = lv.obj(parent)
         o.remove_style_all()
@@ -51,11 +55,13 @@ class Controls:
 
 
     def panel(self, parent, x, y, w, h, radius=10):
+        """Create a card-style box with the standard border."""
         # Border.
         return self.box(parent, x, y, w, h, radius=radius, outline=True)
 
 
     def label(self, p, value, x, y, w=0, font='SPECIAL_LETTER_MONTSERRAT_14', color=None, center=False):
+        """Create a styled label, optionally constraining and centering its text."""
         # Text label
         o = lv.label(p)
         o.remove_style_all()
@@ -75,6 +81,7 @@ class Controls:
 
 
     def icon(self, p, key, x, y, color):
+        """Create a recolored image widget from the preloaded icon collection."""
         # Icon
         o = lv.image(p)
         o.set_src(ICONS[key])
@@ -86,11 +93,15 @@ class Controls:
 
 
     def click(self, o, fn):
+        """Make a widget clickable and invoke its callback on click events."""
+        # The callback intentionally receives no event argument because app
+        # actions use the same zero-argument interface throughout the UI.
         o.add_flag(lv.obj.FLAG.CLICKABLE)
         o.add_event_cb(lambda _event: fn(), lv.EVENT.CLICKED, None)
 
 
     def scroll(self, o):
+        """Enable vertical scrolling and automatic scrollbar visibility."""
         o.add_flag(lv.obj.FLAG.CLICKABLE)
         o.add_flag(lv.obj.FLAG.SCROLLABLE)
         # Scroll vertically.
@@ -99,6 +110,7 @@ class Controls:
 
 
     def brand(self, p, x, y, font, center=False):
+        """Render the two-color Traffic Display wordmark as adjacent labels."""
         # Traffic text
         a = self.label(p, 'Traffic', x, y, font=font)
         # Display text
@@ -115,12 +127,14 @@ class Controls:
 
 
     def section(self, p, text, y, x=24):
+        """Draw a muted, letter-spaced settings section heading."""
         # Section heading text
         o = self.label(p, text, x, y, 552, 'SPECIAL_LETTER_MONTSERRAT_14', self.muted)
         o.set_style_text_letter_space(1, 0)
 
 
     def paragraph(self, p, text, x, y, w, font, color):
+        """Add a wrapped paragraph and return its computed rendered height."""
         # Wrapping paragraph text
         o = self.label(p, text, x, y, w, font, color)
         o.set_long_mode(LABEL_WRAP)
@@ -131,6 +145,7 @@ class Controls:
 
     # === HEADER ===
     def header(self, p, back=False):
+        """Draw the shared header, including navigation and live Wi-Fi status."""
         # Header box
         h = self.box(p, 0, 0, 600, 62, self.bg)
         if back:
@@ -157,6 +172,8 @@ class Controls:
             max(0, WIFI_DOT_X - WIFI_LABEL_X - WIFI_LABEL_GAP)))
         self.wifi_label.set_long_mode(LABEL_DOTS)
         self.wifi_label.set_style_text_align(lv.TEXT_ALIGN.RIGHT, 0)
+        # Keep the status dot against the right margin while the name uses the
+        # available space to its left, preventing overlap on narrower displays.
         self.wifi_dot.set_pos(
             min(WIFI_DOT_X, h.get_width() - 8 - WIFI_HEADER_RIGHT_MARGIN), 27)
         self.update_wifi_status()
@@ -174,17 +191,20 @@ class Controls:
 
     # --- DROPDOWNS ---
     def open_menu(self, menu):
+        """Set the active dropdown type and schedule the UI to redraw."""
         self.menu = menu
         self.request()
 
 
     def close_menu(self, event):
+        """Close the dropdown only when the user clicks its transparent overlay."""
         if event.get_target() == self.overlay:
             self.menu = 0
             self.request()
 
 
     def draw_menu(self):
+        """Draw a scrollable modal menu for transport or stop selection."""
         # Dropdown overlay
         self.overlay = self.box(self.root, 0, 62, 600, 388, self.bg)
         self.overlay.add_flag(lv.obj.FLAG.CLICKABLE)
@@ -209,6 +229,8 @@ class Controls:
         self.scroll(body)
         options = list(enumerate(self.names)) if self.menu == 1 else [(stop['id'], stop['name']) for stop in self.stops]
         selected = self.mode if self.menu == 1 else self.stop_id
+        # Bind each option's value at creation time so later loop iterations do
+        # not change the selection captured by its click callback.
         for index, (value, name) in enumerate(options):
             # Dropdown option
             row = self.box(body, 0, index * 43, 550, 43)
@@ -230,14 +252,16 @@ class Controls:
 
 
     def tile_changed(self, _event):
+        """Update the selected page index and its indicator after a swipe."""
         tile = self.tileview.get_tile_active()
         page = tile.get_index()
         if page < len(self.page_tiles) and page != self.page:
-            self.page = page
+            self.page: int = page
             self.update_dots()
 
 
     def update_dots(self):
+        """Resize and position the page indicators to highlight the active page."""
         x = 273
         for i, o in enumerate(self.dots):
             w = 18 if i == self.page else 7
@@ -249,18 +273,21 @@ class Controls:
 
     # Screen switch
     def __init__(self, display, touch, handler, wifi_station=None,
-                 wifi_name=''):
+                 wifi_name: str = ''):
+        """Initialize screen state, restore preferences, load data, and draw UI."""
         self.display, self.touch, self.handler = (display, touch, handler)
         self.wifi_station, self.wifi_name = (wifi_station, wifi_name)
         self.wifi_connected = None
         self.page, self.dark = (0, True)
         self.default_mode, self.default_stop_id = (0, None)
-        self.settings_message = ''
-        self.settings_message_color = 0
+        self.settings_message: str = ''
+        self.settings_message_color: int = 0
+        # Restore saved selections before fetching matching data; load_data
+        # repairs a missing or incompatible stop ID.
         self.load_settings()
         self.mode, self.stop_id = (self.default_mode, self.default_stop_id)
         self.load_data()
-        self.default_stop_id = self.stop_id
+        self.default_stop_id: "str | None" = self.stop_id
         # menu: 0 = closed, 1 = transport dropdown, 2 = stop dropdown.
         self.terms_open, self.menu = (False, 0)
         # Top-level screen
@@ -275,47 +302,76 @@ class Controls:
 
 
     def request(self):
+        """Schedule one redraw at the next safe LVGL timer opportunity."""
         # Defer widget changes until the current LVGL event is finished.
         self.timer.resume()
         self.timer.ready()
 
 
     def redraw(self, timer):
+        """Pause the one-shot redraw timer and rebuild the current screen."""
         # Redraw only after a prototype interaction.
         timer.pause()
         self.draw()
 
     def update_wifi_status(self, _timer=None):
-        connected = (self.wifi_station is not None and
-                     self.wifi_station.isconnected())
+        """Refresh the header's connection dot and SSID/no-network label."""
+        connected = self.wifi_is_connected()
+        connection_changed = (
+            self.wifi_connected is not None and
+            connected != self.wifi_connected)
         self.wifi_connected = connected
         if connected:
             color = 0x00C853
             text = self.wifi_name[:WIFI_NAME_MAX_LENGTH]
             text_color = self.text
         else:
-            color = 0x888888
-            text = 'No Wifi'
+            color = 0xF44336
+            text = 'No Wi-Fi'
             text_color = self.muted
         self.wifi_dot.set_style_bg_color(lv.color_hex(color), 0)
         self.wifi_label.set_text(text)
         self.wifi_label.set_style_text_color(lv.color_hex(text_color), 0)
+        if connection_changed:
+            self.load_data()
+            self.request()
+
+    def wifi_is_connected(self):
+        """Return the station's connection state, treating driver errors as offline."""
+        try:
+            return (self.wifi_station is not None and
+                    self.wifi_station.isconnected())
+        except OSError:
+            return False
 
 
     # --- DATA DISPLAY INTERFACE ---
     def load_data(self):
+        """Load stops and normalized departures for the current transport/stop."""
         kind = self.kinds[self.mode]
-        self.stops = api.get_stops(kind)
+        self.stops: list[dict[str, str]] = api.get_stops(kind)
         ids = [stop['id'] for stop in self.stops]
+        # If a saved stop does not belong to this transport, select its first
+        # available stop; an empty stop list is represented by None.
         if self.stop_id not in ids:
-            self.stop_id = ids[0] if ids else None
-        self.stop = next((stop['name'] for stop in self.stops
-                          if stop['id'] == self.stop_id), 'Select stop')
-        self.departures = api.get_departures(kind, self.stop_id) if ids else []
-        self.status = api.STATUS
+            self.stop_id: "str | None" = ids[0] if ids else None
+        self.stop: str = next((stop['name'] for stop in self.stops
+                               if stop['id'] == self.stop_id), 'Select stop')
+        self.status: str = api.STATUS
+        self.departures: list = []
+        if not ids or self.stop_id is None:
+            return
+        if not self.wifi_is_connected():
+            self.status = 'No Wi-Fi connection'
+            return
+        try:
+            self.departures = api.get_departures(kind, self.stop_id)
+        except OSError:
+            self.status = 'No network connection'
 
 
     def change(self, key, value):
+        """Update one UI state value, refreshing data when selection changes."""
         # Only transport/stop selections request a new data snapshot.
         setattr(self, key, value)
         if key in ('mode', 'stop_id'):
@@ -325,35 +381,19 @@ class Controls:
         self.request()
 
     def load_settings(self):
+        """Load persisted transport and stop preferences if present."""
         try:
             with open(SETTINGS_FILE, 'r') as source:
                 saved = json.load(source)
         except OSError as error:
             if error.args and error.args[0] == errno.ENOENT:
                 return
-            self.settings_message = 'Could not load saved settings: %s' % error
-            self.settings_message_color = 16749824
-            return
-        except ValueError as error:
-            self.settings_message = 'Invalid saved settings: %s' % error
-            self.settings_message_color = 16749824
-            return
-        try:
-            if not isinstance(saved, dict):
-                raise ValueError('Saved settings must be a JSON object')
-            mode = saved.get('mode')
-            stop_id = saved.get('stop_id')
-            if type(mode) is not int or mode < 0 or mode >= len(self.kinds):
-                raise ValueError('Saved transport setting is invalid')
-            if stop_id is not None and not isinstance(stop_id, str):
-                raise ValueError('Saved stop setting is invalid')
-        except ValueError as error:
-            self.settings_message = 'Invalid saved settings: %s' % error
-            self.settings_message_color = 16749824
-            return
-        self.default_mode, self.default_stop_id = (mode, stop_id)
+            raise
+        self.default_mode = saved.get('mode', self.default_mode)
+        self.default_stop_id = saved.get('stop_id', self.default_stop_id)
 
     def save_settings(self):
+        """Persist current selections and expose success or failure in the UI."""
         saved = {'mode': self.mode, 'stop_id': self.stop_id}
         serialized = json.dumps(saved)
         try:
@@ -370,11 +410,13 @@ class Controls:
         self.request()
 
     def reset(self):
-        self.mode = self.default_mode
+        """Restore the last saved selections and reload their matching data."""
+        self.mode: int = self.default_mode
         self.change('stop_id', self.default_stop_id)
 
 
     def draw(self):
+        """Rebuild the current page, shared header, navigation, and any menu."""
         # Rebuild the three pages using the current state and theme.
         self.bg, self.card, self.border, self.text, self.secondary, self.muted = (789516, 1579035, 2565930, 16777215, 10461097, 5395036) if self.dark else (15921911, 16777215, 15000807, 789516, 5395036, 10592682)
         self.screen.clean()

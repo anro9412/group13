@@ -5,13 +5,14 @@ import pointer_framework
 import time
 
 
-I2C_ADDR = 0x5A
-BITS = 8
+I2C_ADDR: int = 0x5A
+BITS: int = 8
 
 
 class CST226(pointer_framework.PointerDriver):
-    def __init__(self, device, reset_pin=17, swap_xy=False, mirror_y=False,
-                 touch_cal=None, debug=False):
+    def __init__(self, device, reset_pin: int = 17, swap_xy: bool = False,
+                 mirror_y: bool = False, touch_cal=None,
+                 debug: bool = False) -> None:
         self._device = device
         self._tx = bytearray(1)
         self._rx = bytearray(28)
