@@ -1,37 +1,56 @@
 import sys
 import time
-
 import lvgl as lv
 import network
+import errno
 
 from board_lvgl import start_board
 from debug_log import log
 from secrets import WIFI_SSID, WIFI_PASSWORD
-from traffic_display.assets import load_icons, load_fonts
-from traffic_display.controls import Controls
+
+from trafficdisplay.fonts import Fonts
+from trafficdisplay.image import Image
+from trafficdisplay.style import Style
+from trafficdisplay.settings import Settings
+from trafficdisplay.bindings import Bindings
+from trafficdisplay.ui import UI
+from trafficdisplay.traffic_manager import TrafficManager
 
 
 class Application:
-    def __init__(self) -> None:
-        """Initialize hardware, resources, connectivity, and the application UI."""
-        # Initialize assets around board setup: icons are prepared before the
-        # display starts, while the custom font is loaded after its filesystem.
+    def __init__(self):
         self.display = self.touch = self.handler = None
-        # Load image resources
-        load_icons()
         self.display, self.touch, self.handler = start_board()
-        load_fonts()
         self.station = self.connect_wifi()
         self.create_ui()
         log("student application ready")
 
-    def create_ui(self) -> None:
-        """Create the Controls instance that owns the app's screens and state."""
-        self.ui: Controls = Controls(
-            self.display, self.touch, self.handler, self.station, WIFI_SSID)
+    def create_ui(self):
+        import fs_driver
+        self.fs_drv = lv.fs_drv_t()
+        fs_driver.fs_register(self.fs_drv, 'S')
+        Fonts.init()
+        Image.init()
+        Style.init()
+        exceptions = Settings.init()
+        for exception in exceptions:
+            if isinstance(
+                exception,
+                OSError
+            ) and not (
+                exception.args and
+                exception.args[0] == errno.ENOENT
+            ):
+                raise exception
+
+        Bindings.init()
+        screen_traffic_display: lv.screen = UI.init()
+        TrafficManager.init(UI.container_departures)
+
+        return screen_traffic_display
 
     @staticmethod
-    def connect_wifi() -> network.WLAN | None:
+    def connect_wifi():
         """Connect to the configured Wi-Fi network and return its station object.
 
         Wait for at most 15 seconds so startup can continue even when the network
@@ -51,11 +70,9 @@ class Application:
         return station
 
     @staticmethod
-    def show_error(error: Exception) -> None:
-        """Show a startup error on the active display when LVGL is available."""
+    def show_error(error):
+        """Function: Shows startup errors on the display when possible."""
         try:
-            # Replace any partially initialized screen with a simple readable
-            # message; serial logging remains the fallback if display setup fails.
             screen = lv.screen_active()
             screen.clean()
             screen.set_style_bg_color(lv.color_hex(0x000000), 0)
@@ -69,9 +86,8 @@ class Application:
         except Exception:
             pass
 
-
 try:
-    app: Application = Application()
+    app = Application()
 except Exception as error:
     log("FATAL: %r" % (error,))
     sys.print_exception(error)

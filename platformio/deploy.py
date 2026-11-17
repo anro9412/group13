@@ -21,7 +21,7 @@ BUILD = ROOT / "device-build"
 VFS_ROOT = BUILD / "vfs-root"
 VFS_IMAGE = BUILD / "t4s3-vfs.img"
 VFS_DEPLOY_IMAGE = BUILD / "t4s3-vfs-deploy.img"
-VFS_DEPLOY_SIZE = 0x20000
+VFS_DEPLOY_SIZE = 0x80000
 FIRMWARE = ROOT / "firmware" / "t4s3-lvgl-micropython.bin"
 
 PIO_PACKAGES = Path(env.subst("$PROJECT_PACKAGES_DIR"))
@@ -46,12 +46,14 @@ PROJECT_EXCLUDES = {
     ".DS_Store",
     "Thumbs.db",
     "Desktop.ini",
-    "typings"
+    "typings",
+    "main_simulator.py"
 }
 
 PROJECT_FILE_EXCLUDES = {
     "api_test.py",
     "controls_test.py",
+    "main_simulator.py"
 }
 
 
@@ -66,7 +68,7 @@ def require(path, description):
         raise RuntimeError("Missing %s: %s" % (description, path))
 
 
-def copy_project_tree() -> None:
+def copy_project_tree():
     """Copy student files recursively while preserving their relative paths."""
     require(PROJECT_SOURCE / "main.py", "project/main.py")
     for source_path in PROJECT_SOURCE.rglob("*"):
@@ -83,7 +85,7 @@ def copy_project_tree() -> None:
             shutil.copy2(source_path, destination)
 
 
-def build_app_fs(source=None, target=None, env=None) -> None:
+def build_app_fs(source=None, target=None, env=None):
     require(MKFATFS, "PlatformIO mkfatfs tool")
     require(FIRMWARE, "course MicroPython firmware")
     _offset, vfs_size = find_vfs_partition(FIRMWARE)
@@ -138,17 +140,17 @@ def run_esptool(images):
     subprocess.run(command, check=True)
 
 
-def flash_micropython(source=None, target=None, env=None) -> None:
+def flash_micropython(source=None, target=None, env=None):
     run_esptool([("0x0", FIRMWARE)])
 
 
-def flash_app(source=None, target=None, env=None) -> None:
+def flash_app(source=None, target=None, env=None):
     build_app_fs()
     vfs_offset, _vfs_size = find_vfs_partition(FIRMWARE)
     run_esptool([(hex(vfs_offset), VFS_DEPLOY_IMAGE)])
 
 
-def deploy_all(source=None, target=None, env=None) -> None:
+def deploy_all(source=None, target=None, env=None):
     build_app_fs()
     vfs_offset, _vfs_size = find_vfs_partition(FIRMWARE)
     run_esptool([
