@@ -22,6 +22,10 @@ class Application:
         self.display = self.touch = self.handler = None
         self.display, self.touch, self.handler = start_board()
         self.station = self.connect_wifi()
+
+        lv_refresh_timer = self.display.get_refr_timer()
+        lv_refresh_timer.set_period(10)
+
         self.create_ui()
         log("student application ready")
 

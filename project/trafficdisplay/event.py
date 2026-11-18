@@ -37,9 +37,9 @@ class Event:
                 lv.STATE.CHECKED
             )
 
-            Bindings.dropdown_stop_signal.set_int(
-                1 - Bindings.dropdown_stop_signal.get_int()
-            )
+            # Bindings.dropdown_stop_signal.set_int(
+            #     1 - Bindings.dropdown_stop_signal.get_int()
+            # )
 
         elif tile.get_index() == 2:
             UI.button_paginator_tileview_settings.add_state(
