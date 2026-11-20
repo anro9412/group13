@@ -1,5 +1,5 @@
 class Colors:
-    """Colors is a static class that holds standard color hex palette that is
+    """Colors is a static class that holds standard a color hex palette that is
     frequently used within Traffic Display UI elements.
 
     Color palette:
