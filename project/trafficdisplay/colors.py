@@ -1,6 +1,6 @@
 class Colors:
-    """Colors is a static class that holds standard color hex palette that is frequently
-    used within Traffic Display UI elements.
+    """Colors is a static class that holds standard color hex palette that is
+    frequently used within Traffic Display UI elements.
 
     Color palette:
     * BACKGROUND: Is used for tile Backgrounds. #BLACK
