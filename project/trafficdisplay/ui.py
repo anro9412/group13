@@ -7,22 +7,106 @@ from .event import Event
 
 
 class UI:
+    """UI is a static class that holds responsibility for all the UI elements
+    within Traffic Display, hence creating, configuring and initializing the
+    elements.
+
+    Right now UI has access to:
+    * LVGL
+    * Image class
+    * Style class
+    * Bindings class
+    * Event class
+
+    Hierarchy of attribute elements sorted by parents:
+    ```
+    screen_traffic_display
+    |__ image_logo
+    |__ label_brand_traffic_22
+    |__ label_brand_display_22
+    |__ panel_line_tile
+    |__ container_paginator_tileview
+    |   |__ button_paginator_tileview_home
+    |   |__ button_paginator_tileview_departures
+    |   |__ button_paginator_tileview_settings
+    |__ tileview_traffic_display
+        |__ tile_home
+        |   |__ label_heading_home
+        |   |__ label_subheading_home
+        |   |__ panel_information_home
+        |       |__ label_brand_traffic_48
+        |       |__ label_brand_display_48
+        |       |__ label_swipe
+        |       |__ label_by
+        |       |__ label_names
+        |       |__ panel_line_information_home
+        |       |__ container_group_info
+        |       |   |__ circle_initials_first
+        |       |   |   |__ label_initials_first
+        |       |   |__ circle_initials_second
+        |       |   |   |__ label_initials_second
+        |       |   |__ circle_initials_third
+        |       |   |   |__ label_initials_third
+        |       |   |__ circle_initials_fourth
+        |       |   |   |__ label_initials_fourth
+        |       |   |__ circle_initials_fifth
+        |       |   |   |__ label_initials_fifth
+        |       |   |__ label_group_num
+        |       |__ label_version
+        |__ tile_departures
+        |   |__ label_heading_departures
+        |   |__ label_subheading_departures
+        |   |__ panel_location
+        |   |   |__ label_location_icon
+        |   |   |__ label_location_stop
+        |   |   |__ label_location_type
+        |   |__ panel_information_departures
+        |       |__ panel_departure_column
+        |       |   |__ label_time
+        |       |   |__ label_line
+        |       |   |__ label_destination
+        |       |   |__ label_pos
+        |       |__ container_departures
+        |__ tile_settings
+            |__ label_heading_settings
+            |__ label_subheading_settings
+            |__ button_save_to_default
+            |   |__ label_save_to_default
+            |__ button_reset_to_default
+            |   |__ label_reset_to_default
+            |__ label_transport_type
+            |__ label_stop
+            |__ dropdown_type
+            |   |__ dropdown_type_icon
+            |__ dropdown_stop
+                |__ dropdown_stop_icon
+    ```
+    """
+    # Hierarchy sorted by parents
+    # Main screen_traffic_display
     screen_traffic_display: lv.obj = None
 
+    # screen_traffic_display <-- ...
     tileview_traffic_display: lv.tileview = None
     image_logo: lv.image = None
     label_brand_traffic_22: lv.label = None
     label_brand_display_22: lv.label = None
     panel_line_tile: lv.obj = None
     container_paginator_tileview: lv.obj = None
+
+    # screen_traffic_display <-- container_paginator_tileview <-- ...
     button_paginator_tileview_home: lv.button = None
     button_paginator_tileview_departures: lv.button = None
     button_paginator_tileview_settings: lv.button = None
 
+    # tileview_traffic_display <-- tile_home
     tile_home: lv.obj = None
+
+    # tile_home <-- ...
     label_heading_home: lv.label = None
     label_subheading_home: lv.label = None
 
+    # tile_home <-- panel_information_home <-- ...
     panel_information_home: lv.obj = None
     label_brand_traffic_48: lv.label = None
     label_brand_display_48: lv.label = None
@@ -31,67 +115,154 @@ class UI:
     label_names: lv.label = None
     panel_line_information_home: lv.obj = None
 
+    # tile_home <-- panel_information_home <-- container_group_info <-- ...
     container_group_info: lv.obj = None
-    circle_initials_first: lv.obj = None
-    label_initials_first: lv.label = None
+    circle_initials_first: lv.obj = None  # circle_initials_first
+    label_initials_first: lv.label = None  # ... <-- label_initials_first
 
-    circle_initials_second: lv.obj = None
-    label_initials_second: lv.label = None
+    circle_initials_second: lv.obj = None  # circle_initials_second
+    label_initials_second: lv.label = None  # ... <-- label_initials_second
 
-    circle_initials_third: lv.obj = None
-    label_initials_third: lv.label = None
+    circle_initials_third: lv.obj = None  # circle_initials_third
+    label_initials_third: lv.label = None  # ... <-- label_initials_third
 
-    circle_initials_fourth: lv.obj = None
-    label_initials_fourth: lv.label = None
+    circle_initials_fourth: lv.obj = None  # circle_initials_fourth
+    label_initials_fourth: lv.label = None  # ... <-- label_initials_fourth
 
-    circle_initials_fifth: lv.obj = None
-    label_initials_fifth: lv.label = None
+    circle_initials_fifth: lv.obj = None  # circle_initials_fifth
+    label_initials_fifth: lv.label = None  # ... <-- label_initials_fifth
 
+    # container_group_info <-- label_group_num
     label_group_num: lv.label = None
+
+    # tile_home <-- panel_information_home <-- label_version
     label_version: lv.label = None
 
+    # tileview_traffic_display <-- tile_departures
     tile_departures: lv.obj = None
+
+    # tile_departures <-- ...
     label_heading_departures: lv.label = None
     label_subheading_departures: lv.label = None
 
+    # tile_departures <-- panel_location <-- ...
     panel_location: lv.obj = None
-    label_location_icon: lv.label = None
-    label_location_stop: lv.label = None
-    label_location_type: lv.label = None
+    label_location_icon: lv.label = None  # ... <-- label_location_icon
+    label_location_stop: lv.label = None  # ... <-- label_location_stop
+    label_location_type: lv.label = None  # ... <-- label_location_type
 
+    # tile_departures <-- panel_information_departures
     panel_information_departures: lv.obj = None
 
-    panel_departure_column: lv.obj = None
-    label_time: lv.label = None
-    label_line: lv.label = None
-    label_destination: lv.label = None
-    label_pos: lv.label = None
+    # tile_departures <-- panel_information_departures <-- ...
+    panel_departure_column: lv.obj = None  # panel_departure_column <-- ...
+    label_time: lv.label = None  # ... <-- label_time
+    label_line: lv.label = None  # ... <-- label_line
+    label_destination: lv.label = None  # ... <-- label_destination
+    label_pos: lv.label = None  # ... <-- label_pos
 
+    # tile_departures <-- panel_information_departures <-- ...
     container_departures: lv.obj = None
 
+    # tileview_traffic_display <-- tile_settings
     tile_settings: lv.obj = None
 
+    # tileview_traffic_display <-- tile_settings <-- ...
     label_heading_settings: lv.label = None
     label_subheading_settings: lv.label = None
-    button_save_to_default: lv.button = None
-    label_save_to_default: lv.label = None
+    button_save_to_default: lv.button = None  # button_save_to_default <-- ...
+    label_save_to_default: lv.label = None  # ... <-- label_save_to_default
 
-    button_reset_to_default: lv.button = None
-    label_reset_to_default: lv.label = None
+    # tileview_traffic_display <-- tile_settings <-- ...
+    button_reset_to_default: lv.button = None  # button_reset_to_default
+    label_reset_to_default: lv.label = None  # ... <-- label_reset_to_default
 
+    # tileview_traffic_display <-- tile_settings <-- ...
     label_transport_type: lv.label = None
     label_stop: lv.label = None
 
-    dropdown_type: lv.dropdown = None
-    dropdown_type_icon: lv.label = None
+    # tileview_traffic_display <-- tile_settings <-- ...
+    dropdown_type: lv.dropdown = None  # dropdown_type <-- ...
+    dropdown_type_icon: lv.label = None  # ... <-- dropdown_type_icon
 
-    dropdown_stop: lv.dropdown = None
-    dropdown_stop_icon: lv.label = None
+    dropdown_stop: lv.dropdown = None  # dropdown_stop <-- ...
+    dropdown_stop_icon: lv.label = None  # ... <-- dropdown_stop_icon
 
     @staticmethod
     def init() -> lv.obj:
+        """UI.init is a static method which creates and initializes all major
+        UI elements that are present within the Traffic Display UI.
+
+        All major UI elements:
+        ```
+        screen_traffic_display
+        |__ image_logo
+        |__ label_brand_traffic_22
+        |__ label_brand_display_22
+        |__ panel_line_tile
+        |__ container_paginator_tileview
+        |   |__ button_paginator_tileview_home
+        |   |__ button_paginator_tileview_departures
+        |   |__ button_paginator_tileview_settings
+        |__ tileview_traffic_display
+            |__ tile_home
+            |   |__ label_heading_home
+            |   |__ label_subheading_home
+            |   |__ panel_information_home
+            |       |__ label_brand_traffic_48
+            |       |__ label_brand_display_48
+            |       |__ label_swipe
+            |       |__ label_by
+            |       |__ label_names
+            |       |__ panel_line_information_home
+            |       |__ container_group_info
+            |       |   |__ circle_initials_first
+            |       |   |   |__ label_initials_first
+            |       |   |__ circle_initials_second
+            |       |   |   |__ label_initials_second
+            |       |   |__ circle_initials_third
+            |       |   |   |__ label_initials_third
+            |       |   |__ circle_initials_fourth
+            |       |   |   |__ label_initials_fourth
+            |       |   |__ circle_initials_fifth
+            |       |   |   |__ label_initials_fifth
+            |       |   |__ label_group_num
+            |       |__ label_version
+            |__ tile_departures
+            |   |__ label_heading_departures
+            |   |__ label_subheading_departures
+            |   |__ panel_location
+            |   |   |__ label_location_icon
+            |   |   |__ label_location_stop
+            |   |   |__ label_location_type
+            |   |__ panel_information_departures
+            |       |__ panel_departure_column
+            |       |   |__ label_time
+            |       |   |__ label_line
+            |       |   |__ label_destination
+            |       |   |__ label_pos
+            |       |__ container_departures
+            |__ tile_settings
+                |__ label_heading_settings
+                |__ label_subheading_settings
+                |__ button_save_to_default
+                |   |__ label_save_to_default
+                |__ button_reset_to_default
+                |   |__ label_reset_to_default
+                |__ label_transport_type
+                |__ label_stop
+                |__ dropdown_type
+                |   |__ dropdown_type_icon
+                |__ dropdown_stop
+                    |__ dropdown_stop_icon
+        ```
+        """
+        # Initialization of UI elements
+        # Hierarchy sorted by parents
+        # Main screen_traffic_display
         UI.screen_traffic_display: lv.obj = lv.screen_active()
 
+        # screen_traffic_display <-- ...
         UI.tileview_traffic_display: lv.tileview = UI.tileview(
             UI.screen_traffic_display
         )
@@ -115,6 +286,7 @@ class UI:
             Style.PANEL_LINE_TILE
         )
 
+        # screen_traffic_display <-- container_paginator_tileview <-- ...
         UI.container_paginator_tileview, \
             UI.button_paginator_tileview_home, \
             UI.button_paginator_tileview_departures, \
@@ -123,9 +295,12 @@ class UI:
                 UI.screen_traffic_display
             )
 
+        # screen_traffic_display <-- tileview_traffic_display <-- tile_home
         UI.tile_home: lv.obj = UI.tile(
             UI.tileview_traffic_display, 0, 0, lv.DIR.RIGHT
         )
+
+        # tileview_traffic_display <-- tile_home <-- ...
         UI.label_heading_home: lv.label = UI.label(
             UI.tile_home,
             "Welcome",
@@ -137,6 +312,7 @@ class UI:
             Style.LABEL_SUBHEADING
         )
 
+        # tile_home <-- panel_information_home <-- ...
         UI.panel_information_home: lv.obj = UI.obj(
             UI.tile_home,
             Style.PANEL_INFORMATION
@@ -171,10 +347,13 @@ class UI:
             Style.PANEL_LINE_INFORMATION
         )
 
+        # tile_home <-- panel_information_home <-- container_group_info <-- ...
         UI.container_group_info: lv.obj = UI.obj(
             UI.panel_information_home,
             Style.CONTAINER_GROUP_INFO
         )
+
+        # container_group_info <-- circle_initials_first
         UI.circle_initials_first: lv.obj = UI.obj(
             UI.container_group_info,
             (
@@ -183,6 +362,8 @@ class UI:
                 Style.INITIALS_RED
             )
         )
+
+        # container_group_info <-- circle_initials_first <-- ...
         UI.label_initials_first: lv.label = UI.label(
             UI.circle_initials_first,
             "J",
@@ -192,6 +373,7 @@ class UI:
             )
         )
 
+        # container_group_info <-- circle_initials_second
         UI.circle_initials_second: lv.obj = UI.obj(
             UI.container_group_info,
             (
@@ -200,6 +382,7 @@ class UI:
                 Style.INITIALS_TURQUOISE
             )
         )
+        # container_group_info <-- circle_initials_second <-- ...
         UI.label_initials_second: lv.label = UI.label(
             UI.circle_initials_second,
             "A",
@@ -209,6 +392,7 @@ class UI:
             )
         )
 
+        # container_group_info <-- circle_initials_third
         UI.circle_initials_third: lv.obj = UI.obj(
             UI.container_group_info,
             (
@@ -217,15 +401,17 @@ class UI:
                 Style.INITIALS_BLUE
             )
         )
+        # container_group_info <-- circle_initials_third <-- ...
         UI.label_initials_third: lv.label = UI.label(
-            UI.circle_initials_third, 
+            UI.circle_initials_third,
             "L",
             (
-                Style.LABEL_INITIALS_LETTER, 
+                Style.LABEL_INITIALS_LETTER,
                 Style.INITIALS_BLUE
             )
         )
 
+        # container_group_info <-- circle_initials_fourth
         UI.circle_initials_fourth: lv.obj = UI.obj(
             UI.container_group_info,
             (
@@ -234,6 +420,7 @@ class UI:
                 Style.INITIALS_ORANGE
             )
         )
+        # container_group_info <-- circle_initials_fourth <-- ...
         UI.label_initials_fourth: lv.label = UI.label(
             UI.circle_initials_fourth,
             "L",
@@ -243,14 +430,16 @@ class UI:
             )
         )
 
+        # container_group_info <-- circle_initials_fifth
         UI.circle_initials_fifth: lv.obj = UI.obj(
-            UI.container_group_info, 
+            UI.container_group_info,
             (
-                Style.CIRCLE_INITIALS, 
-                Style.CIRCLE_INITIALS_FIFTH, 
+                Style.CIRCLE_INITIALS,
+                Style.CIRCLE_INITIALS_FIFTH,
                 Style.INITIALS_PURPLE
             )
         )
+        # container_group_info <-- circle_initials_fifth <-- ...
         UI.label_initials_fifth: lv.label = UI.label(
             UI.circle_initials_fifth,
             "A",
@@ -260,17 +449,21 @@ class UI:
             )
         )
 
+        # panel_information_home <-- container_group_info <-- label_group_num
         UI.label_group_num: lv.label = UI.label(
-            UI.container_group_info, 
-            "Group 13", 
+            UI.container_group_info,
+            "Group 13",
             Style.LABEL_GROUP_NUM
         )
+
+        # panel_information_home <-- label_version
         UI.label_version: lv.label = UI.label(
             UI.panel_information_home,
             "v1.0.12",
             Style.LABEL_VERSION
         )
 
+        # tileview_traffic_display <-- tile_departures <-- ...
         UI.tile_departures: lv.obj = UI.tile(
             UI.tileview_traffic_display, 1, 0, lv.DIR.HOR
         )
@@ -285,6 +478,7 @@ class UI:
             Style.LABEL_SUBHEADING
         )
 
+        # tile_departures <-- panel_location <-- ...
         UI.panel_location: lv.obj = UI.obj(
             UI.tile_departures,
             Style.PANEL_LOCATION
@@ -300,16 +494,18 @@ class UI:
             Style.LABEL_LOCATION_STOP
         )
         UI.label_location_type: lv.label = UI.label(
-            UI.panel_location, 
+            UI.panel_location,
             Bindings.transport_type_selected_text_bare,
             Style.LABEL_LOCATION_TYPE
         )
 
+        # tileview_traffic_display <-- tile_departures <-- ...
         UI.panel_information_departures: lv.obj = UI.obj(
             UI.tile_departures,
             Style.PANEL_INFORMATION
         )
 
+        # tile_departures <-- panel_information_departures <-- ...
         UI.panel_departure_column: lv.obj = UI.obj(
             UI.panel_information_departures,
             Style.PANEL_DEPARTURE_COLUMN
@@ -320,6 +516,8 @@ class UI:
             remove_flags=None,
             scroll_direction=lv.DIR.VER
         )
+
+        # panel_information_departures <-- panel_departure_column <-- ...
         UI.label_time: lv.label = UI.label(
             UI.panel_departure_column,
             "TIME",
@@ -341,6 +539,7 @@ class UI:
             Style.LABEL_POS
         )
 
+        # tileview_traffic_display <-- tile_settings <-- ...
         UI.tile_settings: lv.obj = UI.tile(
             UI.tileview_traffic_display, 2, 0, lv.DIR.LEFT
         )
@@ -355,16 +554,20 @@ class UI:
             "Preferences for this session",
             Style.LABEL_SUBHEADING
         )
+
+        # tile_settings <-- button_save_to_default <-- ...
         UI.button_save_to_default, UI.label_save_to_default = \
         UI.build_button_save(
             UI.tile_settings
         )
 
+        # tile_settings <-- button_reset_to_default <-- ...
         UI.button_reset_to_default, UI.label_reset_to_default = \
         UI.build_button_reset(
             UI.tile_settings
         )
 
+        # tileview_traffic_display <-- tile_settings <-- ...
         UI.label_transport_type: lv.label = UI.label(
             UI.tile_settings,
             "TRANSPORT TYPE",
@@ -376,19 +579,34 @@ class UI:
             Style.LABEL_STOP
         )
 
+        # tileview_traffic_display <-- tile_settings <-- dropdown_type <-- ...
         UI.dropdown_type, UI.dropdown_type_icon = UI.build_dropdown_type(
             UI.tile_settings
         )
 
+        # tileview_traffic_display <-- tile_settings <-- dropdown_stop <-- ...
         UI.dropdown_stop, UI.dropdown_stop_icon = UI.build_dropdown_stop(
             UI.tile_settings
         )
+
+        # Initialize dropdown_stop_observer, so UI.dropdown_stop options can
+        # change dynamically based on Bindings.dropdown_stop_options_text
         UI.dropdown_stop_observer_initialize()
 
+        # return UI.screen_traffic_display to main.py
         return UI.screen_traffic_display
 
     @staticmethod
     def tileview(parent: lv.obj) -> lv.tileview:
+        """tileview is a static method, which creates and returns a
+        lv.tileview object within its parent, it adds
+        Style.TILEVIEW_TRAFFIC_DISPLAY within lv.PART.MAIN and
+        Style.SCROLLBAR_TRANSPARENT within lv.PART.SCROLLBAR, making the
+        scrollbar invisible.
+
+        Also adds event Event.tileview_value_changed, when
+        lv.EVENT.VALUE_CHANGED occurs, making it possible to configure certain
+        events when a current tile is changed to be viewed."""
         tileview = lv.tileview(parent)
         tileview.add_style(Style.TILEVIEW_TRAFFIC_DISPLAY, lv.PART.MAIN)
         tileview.add_style(Style.SCROLLBAR_TRANSPARENT, lv.PART.SCROLLBAR)
@@ -408,6 +626,11 @@ class UI:
             row: int,
             direction: int
             ) -> lv.obj:
+        """tile is a static method which creates and returns a lvgl tile
+        object within its lv.tileview parent, it acts the same as
+        lv.tileview.add_tile() method.
+
+        For direction one can use lv.DIR flags."""
 
         return parent.add_tile(column, row, direction)
 
@@ -419,25 +642,66 @@ class UI:
             parts: lv.part_t | lv.style_selector_t |
             tuple[lv.part_t | lv.style_selector_t, ...] = lv.PART.MAIN
     ) -> lv.label:
+        """label is a static method that creates and returns a lv.label
+        object, which makes it possible to create a lv.label object with
+        multiple styles and parts in one go, including text or bind text.
+
+        Parameter info:
+        * parent: parent for the UI.label object
+        * text_or_binding: IF static text use string, ELSE if bind_text use
+        lv.subject_t object, None skips the label.set_text process.
+        * styles: takes one lv.style_t or a tuple with multiple lv.style_t
+        * parts: takes lv.part_t | lv.style_selector_t or a tuple with
+        multiple lv.part_t | lv.style_selector_t
+
+        Important notice:
+        ```
+        In order to add multiple different styles to parts one has to follow
+        the following format:
+            styles = lv.style_t, parts = lv.part_t | lv.style_selector
+            --> gives one style to one part
+
+            styles = (lv_style_t), parts = lv.part_t | lv.style_selector
+            --> gives one style to one part
+
+            styles = (lv_style_t, ...), parts = lv.part_t | lv.style_selector
+            --> gives multiple styles to one part
+
+            styles = (lv_style_t, ...),
+            parts = (lv.part_t | lv.style_selector, ...)
+            --> gives style from element of index to part from element of index
+            The length of both tuple have to be of the same lenght, in order to
+            get corresponding style to part.
+
+            One style to multiple parts is only possible if the tuple of styles
+            has the same style within its elements to different part within
+            the parts tuple. And both tuple are of the same lenght.
+        ```
+        """
 
         label = lv.label(parent)
         styles_is_tuple = isinstance(styles, tuple)
         parts_is_tuple = isinstance(parts, tuple)
 
+        # Add styles element to parts element
         if styles_is_tuple and parts_is_tuple:
             for i in range(len(styles)):
                 label.add_style(styles[i], parts[i])
 
+        # Add styles element to same parts
         elif styles_is_tuple:
             for style in styles:
                 label.add_style(style, parts)
 
+        # Add one style to one part
         elif isinstance(styles, lv.style_t):
             label.add_style(styles, parts)
 
+        # bind_text to label
         if isinstance(text_or_binding, lv.subject_t):
             label.bind_text(text_or_binding, None)
 
+        # set_text to label
         elif isinstance(text_or_binding, str):
             label.set_text(text_or_binding)
 
@@ -456,28 +720,83 @@ class UI:
             add_flags: "lv.obj_flag_t | None" = None,
             remove_flags: "lv.obj_flag_t | None" = None
     ) -> lv.button | tuple[lv.button, lv.label]:
+        """
+        button is a static method that creates and returns a lv.button and
+        a lv.label object (if text_or_binding is NOT set to None),
+        that is within the lv.button object, which makes it
+        possible to create a lv.button and a lv.label object with multiple
+        styles, parts and added flags in one go, including text or bind text
+        for the label.
 
+        Parameter info:
+        * parent: parent for the UI.button object
+        * text_or_binding: IF static text use string, ELSE IF bind_text use
+        lv.subject_t object, None skips the label.set_text process.
+        * styles_button: takes one lv.style_t or a tuple with multiple
+        lv.style_t
+        * styles_label: takes one lv.style_t or a tuple with multiple
+        lv.style_t
+        * parts_button: takes lv.part_t | lv.style_selector_t or a tuple with
+        multiple lv.part_t | lv.style_selector_t
+        * parts_label: takes lv.part_t | lv.style_selector_t or a tuple with
+        multiple lv.part_t | lv.style_selector_t
+        * add_flags: add all the flags that you want to enable on the button
+        as lv.obj_flag_t
+        * remove_flags: add all the flags that you want to remove from the
+        button as lv.obj_flag_t
+
+        Important general notice:
+        ```
+        In order to add multiple different styles to parts one has to follow
+        the following format:
+            styles = lv.style_t, parts = lv.part_t | lv.style_selector
+            --> gives one style to one part
+
+            styles = (lv_style_t), parts = lv.part_t | lv.style_selector
+            --> gives one style to one part
+
+            styles = (lv_style_t, ...), parts = lv.part_t | lv.style_selector
+            --> gives multiple styles to one part
+
+            styles = (lv_style_t, ...),
+            parts = (lv.part_t | lv.style_selector, ...)
+            --> gives style from element of index to part from element of index
+            The length of both tuple have to be of the same lenght, in order to
+            get corresponding style to part.
+
+            One style to multiple parts is only possible if the tuple of styles
+            has the same style within its elements to different part within
+            the parts tuple. And both tuple are of the same lenght.
+        ```
+        """
         lv_button = lv.button(parent)
         styles_is_tuple = isinstance(styles_button, tuple)
         parts_is_tuple = isinstance(parts_button, tuple)
 
+        # add flags to the button
         if add_flags:
             lv_button.add_flag(add_flags)
 
+        # remove flags from the button
         if remove_flags:
             lv_button.remove_flag(remove_flags)
 
+        # add styles_button element to parts_button element
         if styles_is_tuple and parts_is_tuple:
             for i in range(len(styles_button)):
                 lv_button.add_style(styles_button[i], parts_button[i])
 
+        # add styles_button element to same parts_button
         elif styles_is_tuple:
             for style in styles_button:
                 lv_button.add_style(style, parts_button)
 
+        # add styles_button to one parts_button
         elif isinstance(styles_button, lv.style_t):
             lv_button.add_style(styles_button, parts_button)
 
+        # IF text_or_binding exist create lv_label, with text_or_binding and
+        # its styles and parts
         if text_or_binding:
             lv_label = UI.label(
                 lv_button,
@@ -486,8 +805,10 @@ class UI:
                 parts_label
             )
 
+            # return both lv_button and label
             return lv_button, lv_label
 
+        # return only lv_button
         return lv_button
 
     @staticmethod
@@ -500,28 +821,75 @@ class UI:
         remove_flags: "lv.obj_flag_t | None" = lv.obj.FLAG.SCROLLABLE,
         scroll_direction: lv.dir_t | None = None
     ) -> lv.obj:
+        """
+        obj is a static method that creates and returns a lv.obj object
+        which makes it possible to create a lv.obj object with multiple
+        styles, parts and added flags in one go.
 
+        Parameter info:
+        * parent: parent for the UI.obj object
+        * styles: takes one lv.style_t or a tuple with multiple
+        lv.style_t
+        * parts: takes lv.part_t | lv.style_selector_t or a tuple with
+        multiple lv.part_t | lv.style_selector_t
+        * add_flags: add all the flags that you want to enable on the
+        lv.obj as lv.obj_flag_t
+        * remove_flags: add all the flags that you want to remove from the
+        lv.obj as lv.obj_flag_t
+        * scroll_direction: set scroll direction with lv.DIR,
+        do not forget to remove lv.obj.FLAG.SCROLLABLE from remove_flags.
+
+        Important general notice:
+        ```
+        In order to add multiple different styles to parts one has to follow
+        the following format:
+            styles = lv.style_t, parts = lv.part_t | lv.style_selector
+            --> gives one style to one part
+
+            styles = (lv_style_t), parts = lv.part_t | lv.style_selector
+            --> gives one style to one part
+
+            styles = (lv_style_t, ...), parts = lv.part_t | lv.style_selector
+            --> gives multiple styles to one part
+
+            styles = (lv_style_t, ...),
+            parts = (lv.part_t | lv.style_selector, ...)
+            --> gives style from element of index to part from element of index
+            The length of both tuple have to be of the same lenght, in order to
+            get corresponding style to part.
+
+            One style to multiple parts is only possible if the tuple of styles
+            has the same style within its elements to different part within
+            the parts tuple. And both tuple are of the same lenght.
+        ```
+        """
         lv_object = lv.obj(parent)
         styles_is_tuple = isinstance(styles, tuple)
         parts_is_tuple = isinstance(parts, tuple)
 
+        # add flags to the lv_object
         if add_flags:
             lv_object.add_flag(add_flags)
 
+        # remove flags from the object
         if remove_flags:
             lv_object.remove_flag(remove_flags)
 
+        # add styles element to parts element
         if styles_is_tuple and parts_is_tuple:
             for i in range(len(styles)):
                 lv_object.add_style(styles[i], parts[i])
 
+        # add styles element to same parts
         elif styles_is_tuple:
             for style in styles:
                 lv_object.add_style(style, parts)
 
+        # add styles to one parts
         elif isinstance(styles, lv.style_t):
             lv_object.add_style(styles, parts)
 
+        # set objects scroll direction
         if scroll_direction:
             lv_object.set_scroll_dir(scroll_direction)
 
@@ -533,27 +901,46 @@ class UI:
             button_text_agree: str | None = None,
             button_text_disagree: str | None = None,
         ):
+        """
+        message_box_save is a static method which temporary creates a lv.msgbox
+        with an optional message, button_agree and button_disagree text until
+        the user decides to close the message box. It is mainly used for when
+        UI.button_save gets clicked on, initiating the save to default
+        settings process when button_text_agree gets clicked on when the
+        message box is visible to the user.
 
+        It can also be used as an error message for the user if
+        button_text_agree is left as None. The message box has a preset style
+        and position.
+        """
+
+        # Save and create the message box to be available within the
+        # Event class with a temporary layer placed on top of screen
         Event.message_box_save: lv.msgbox = lv.msgbox(None)
         Event.message_box_save.add_style(
             Style.PANEL_MESSAGE_BOX_SAVE,
             lv.PART.MAIN
         )
 
+        # IF message, add message as message box text description
         if message:
             Event.message_box_save.add_text(message)
 
+        # Get parent of the message box to enable transparent background
         message_box_save_parent = Event.message_box_save.get_parent()
         message_box_save_parent.set_style_bg_opa(
             lv.OPA.TRANSP,
             lv.PART.MAIN
         )
+        # Add Event to the message_box_save_parent that closes the message box
+        # IF clicked on
         message_box_save_parent.add_event_cb(
             Event.button_save_disagree_clicked,
             lv.EVENT.CLICKED,
             None
         )
 
+        # IF button_text_agree add a message box button and set text and style
         if button_text_agree:
             message_box_save_button_agree = \
                 Event.message_box_save.add_footer_button(
@@ -563,12 +950,16 @@ class UI:
                 Style.BUTTON_MESSAGE_BOX,
                 lv.PART.MAIN
             )
+            # Add Event.button_save_agree_clicked to the
+            # message_box_save_button_agree which starts the saving to default
+            # process IF clicked on
             message_box_save_button_agree.add_event_cb(
                 Event.button_save_agree_clicked,
                 lv.EVENT.CLICKED,
                 None
             )
 
+        # IF button_text_agree, add a message box button and set text and style
         if button_text_disagree:
             message_box_save_button_disagree: lv.button = \
                 Event.message_box_save.add_footer_button(
@@ -578,6 +969,8 @@ class UI:
                 Style.BUTTON_MESSAGE_BOX,
                 lv.PART.MAIN
             )
+            # Add Event to the message_box_save_button_disagree that closes
+            # the message box IF clicked on
             message_box_save_button_disagree.add_event_cb(
                 Event.button_save_disagree_clicked,
                 lv.EVENT.CLICKED,
@@ -586,24 +979,47 @@ class UI:
 
     @staticmethod
     def message_box_save_result_success(parent: lv.obj, message: str):
+        """
+        message_box_save_result_success is a static method which temporary
+        creates a lv.msgbox with an optional message and closes after a
+        certain time period. It is mainly used for when a succesful save to
+        default process has finished, and is configured to be used with
+        UI.tile_settings as parent.
+
+        It can also be used as a temporary message for the user. The message
+        box has a preset style and position.
+        """
+        # create a message box and enqueue it to
+        # Event.message_box_save_result_success_queue: queue_array
         message_box: lv.msgbox = lv.msgbox(parent)
         Event.message_box_save_result_success_queue.enqueue(message_box)
+        # remove the lv.obj.FLAG.CLICKABLE from the message box
         message_box.remove_flag(lv.obj.FLAG.CLICKABLE)
+        # Also remove the lv.obj.FLAG.CLICKABLE from messagebox's content
         message_box.get_content().remove_flag(lv.obj.FLAG.CLICKABLE)
+        # Add the style_t Style.PANEL_MESSAGE_BOX_SAVE_RESULT_SUCCESS to the 
+        # message box
         message_box.add_style(
             Style.PANEL_MESSAGE_BOX_SAVE_RESULT_SUCCESS,
             lv.PART.MAIN
         )
+        # Override lv.msgbox's preset local ALIGNMENT and coordinates of the
+        # message box
         message_box.align(lv.ALIGN.TOP_MID, 0, 358)
-        message_box.add_text(message)
-        message_box.fade_in(100, 0)
+        message_box.add_text(message)  # set text message
+        message_box.fade_in(100, 0)  # fade_in to view for 1 sec
 
+        # Create a lv.timer_t for when the timer should call
+        # Event.button_save_result_success_close and close the message box
+        # Duration is currently 2 secs
         timer: lv.timer_t = lv.timer_create(
             Event.button_save_result_success_close,
             2000,
             None
         )
 
+        # Repeat the timer once and set_auto_delete to True so the timer
+        # deletes itself after the repeat count has finished
         timer.set_repeat_count(1)
         timer.set_auto_delete(True)
 
@@ -611,12 +1027,24 @@ class UI:
     def build_paginator_tileview_traffic_display(
         parent: lv.obj
     ) -> tuple[lv.obj, lv.button, lv.button, lv.button]:
+        """
+        build_paginator_tileview_traffic_display is a static method that
+        builds and initializes the paginator used by Traffic Display for
+        indicating the current tile being viewed.
 
+        it returns the container_paginator_tileview, with
+        button_paginator_tileview_home, button_paginator_tileview_departures
+        and button_paginator_tileview_settings.
+        """
+
+        # create the container_paginator_tileview and add its style
         container_paginator_tileview = UI.obj(
             parent,
             Style.CONTAINER_PAGINATOR_TILEVIEW,
         )
 
+        # create the button_paginator_tileview_home with UI.button method
+        # and set its styles and parts, also remove lv.obj.FLAG.CLICKABLE
         button_paginator_tileview_home = UI.button(
             container_paginator_tileview,
             styles_button=(
@@ -630,6 +1058,8 @@ class UI:
             remove_flags=lv.obj.FLAG.CLICKABLE
         )
 
+        # create the button_paginator_tileview_departures with UI.button method
+        # and set its styles and parts, also remove lv.obj.FLAG.CLICKABLE
         button_paginator_tileview_departures = UI.button(
             container_paginator_tileview,
             styles_button=(
@@ -643,6 +1073,8 @@ class UI:
                 remove_flags=lv.obj.FLAG.CLICKABLE
         )
 
+        # create the button_paginator_tileview_settings with UI.button method
+        # and set its styles and parts, also remove lv.obj.FLAG.CLICKABLE
         button_paginator_tileview_settings = UI.button(
             container_paginator_tileview,
                 styles_button=(
@@ -656,6 +1088,7 @@ class UI:
                     remove_flags=lv.obj.FLAG.CLICKABLE
         )
 
+        # set button_paginator_tileview_home to CHECKED state during startup
         button_paginator_tileview_home.add_state(lv.STATE.CHECKED)
 
         return (
@@ -667,6 +1100,15 @@ class UI:
 
     @staticmethod
     def build_button_save(parent: lv.obj) -> tuple[lv.button, lv.label]:
+        """build_button_save is a static method that builds the
+        UI.button_save_to_default and the UI.label_save_to default, that is
+        used to initialize the save to default settings process when clicked
+        on.
+
+        It returns the button_save_to_default and the label_save_to_default."""
+
+        # Create button_save_to_default and label_save_to_default with their
+        # text, styles and parts
         lv_button, lv_label = UI.button(
             parent,
             "Save",
@@ -681,6 +1123,9 @@ class UI:
             )
         )
 
+        # Add Event.button_save_clicked to the button that initializes the
+        # save to default settings process, through UI.message_box_save method
+        # in the class Events when clicked on
         lv_button.add_event_cb(
             Event.button_save_clicked,
             lv.EVENT.CLICKED,
@@ -691,6 +1136,17 @@ class UI:
 
     @staticmethod
     def build_button_reset(parent: lv.obj) -> tuple[lv.button, lv.label]:
+        """
+        build_button_reset is a static method that builds the
+        UI.button_reset_to_default and the UI.label_reset_to default, that is
+        used to initialize the reset to default settings process when clicked
+        on.
+
+        It returns the button_reset_to_default and the label_reset_to_default.
+        """
+
+        # Create button_reset_to_default and label_reset_to_default with their
+        # text, styles and parts
         lv_button, lv_label = UI.button(
             parent,
             "Reset",
@@ -705,6 +1161,8 @@ class UI:
             )
         )
 
+        # Add Event.button_reset_clicked to the button that initializes the
+        # reset to default settings process in the class Events when clicked on
         lv_button.add_event_cb(
             Event.button_reset_clicked,
             lv.EVENT.CLICKED,
@@ -713,18 +1171,46 @@ class UI:
 
         return lv_button, lv_label
 
-
     @staticmethod
     def build_dropdown_type(parent: lv.obj) -> tuple[lv.dropdown, lv.label]:
+        """
+        build_dropdown_type is a static method that builds the
+        UI.dropdown_type: lv.dropdown and the UI.dropdown_type_icon: lv.label
+        that is used for selecting Transport types by the user within Traffic
+        Display. Selected dropdown_type's index is bound to
+        Bindings.transport_type_selected_index.
+
+        It returns the dropdown_type and the dropdown_type_label.
+
+        Currently available Transport types:
+        ```
+        * Bus:
+            index = 0
+        * Train:
+            index = 1
+        * Ferry:
+            index = 2
+        * All:
+            index = 3
+        ```
+        """
+
+        # create dropdown_type and set its options to static with Transport
+        # types and icons
         dropdown_type = lv.dropdown(parent)
         dropdown_type.set_options_static(
             "\uE901   Bus\n\uE903   Train\n\uE904   Ferry\n\uE900   All"
         )
+        # bind selected dropdown_type's index to
+        # Bindings.transport_type_selected_index
         dropdown_type.bind_value(Bindings.transport_type_selected_index)
+        # set dropdown opening list direction towards bottom
         dropdown_type.set_dir(lv.DIR.BOTTOM)
-        dropdown_type.set_selected(
-            Bindings.transport_type_selected_index.get_int()
-        )
+        # TODO Place holder uneccessary code
+        # TODO dropdown_type.set_selected(
+        # TODO     Bindings.transport_type_selected_index.get_int()
+        # TODO )
+        # add styles from the class Style to dropdown_type and its parts
         dropdown_type.add_style(
             Style.DROPDOWN_TYPE_MAIN,
             lv.PART.MAIN
@@ -742,11 +1228,14 @@ class UI:
             lv.PART.INDICATOR
         )
 
+        # create dropdown_type_label with its style from the class Style
         dropdown_type_icon = UI.label(
             dropdown_type,
             styles=Style.DROPDOWN_ICON
         )
 
+        # add Event.dropdown_arrow_rotation to dropdown_type so its indicator
+        # rotates when dropdown is open or closed
         for event in (lv.EVENT.READY, lv.EVENT.CANCEL):
             dropdown_type.add_event_cb(
                 Event.dropdown_arrow_rotation,
@@ -754,12 +1243,16 @@ class UI:
                 None
             )
 
+        # add Event.dropdown_selected to dropdown_type, when VALUE_CHANGED
+        # to trigger theme, text and label changes.
         dropdown_type.add_event_cb(
             Event.dropdown_selected,
             lv.EVENT.VALUE_CHANGED,
             None
         )
 
+        # get dropdown_type_list and add styles from the Class styles to its
+        # parts
         dropdown_type_list = dropdown_type.get_list()
         dropdown_type_list.add_style(
             Style.DROPDOWN_TYPE_MAIN,
@@ -774,14 +1267,28 @@ class UI:
             lv.PART.SELECTED | lv.STATE.PRESSED
         )
 
+        # trigger Event.dropdown_selected to update theme, text and labels
         dropdown_type.send_event(lv.EVENT.VALUE_CHANGED, None)
 
         return dropdown_type, dropdown_type_icon
 
     @staticmethod
     def build_dropdown_stop(parent: lv.obj) -> tuple[lv.dropdown, lv.label]:
+        """
+        build_dropdown_stop is a static method that builds the
+        UI.dropdown_stop: lv.dropdown and the UI.dropdown_stop_icon: lv.label
+        that is used for selecting departure stops by the user within Traffic
+        Display. Selected dropdown_stop's index is bound to
+        Bindings.stop_selected_index.
+
+        It returns the dropdown_stop and  the dropdown_stop_icon.
+        """
+
+        # create dropdown_type and bind its selected index to
+        # Bindings.stop_selected_index
         dropdown_stop = lv.dropdown(parent)
         dropdown_stop.bind_value(Bindings.stop_selected_index)
+        # add styles from the class Style to dropdown_stop and its parts
         dropdown_stop.add_style(
             Style.DROPDOWN_STOP_MAIN,
             lv.PART.MAIN
@@ -799,11 +1306,14 @@ class UI:
             lv.PART.INDICATOR
         )
 
+        # create dropdown_stop_label with its style from the class Style
         dropdown_stop_icon = UI.label(
             dropdown_stop,
             styles=Style.DROPDOWN_ICON
         )
 
+        # add Event.dropdown_arrow_rotation to dropdown_stop so its indicator
+        # rotates when dropdown is open or closed
         for event in (lv.EVENT.READY, lv.EVENT.CANCEL):
             dropdown_stop.add_event_cb(
                 Event.dropdown_arrow_rotation,
@@ -811,12 +1321,16 @@ class UI:
                 None
             )
 
+        # add Event.dropdown_selected to dropdown_stop, when VALUE_CHANGED
+        # to trigger departure, text and label changes.
         dropdown_stop.add_event_cb(
             Event.dropdown_selected,
             lv.EVENT.VALUE_CHANGED,
             None
         )
 
+        # get dropdown_stop_list and add styles from the Class Styles to its
+        # parts
         dropdown_stop_list = dropdown_stop.get_list()
         dropdown_stop_list.add_style(
             Style.DROPDOWN_STOP_MAIN,
@@ -835,6 +1349,14 @@ class UI:
 
     @staticmethod
     def dropdown_stop_observer_initialize():
+        """dropdown_stop_observer_initialize is a static method that
+        initializes an observer over Bindings.dropdown_stop_options_text,
+        which gets triggered when the class TrafficManager updates the
+        available dropdown_stop's options.
+
+        When Bindings.dropdown_stop_options_text is changed, the observer
+        calls the UI.dropdown_stop_options_changed method.
+        """
         Bindings.dropdown_stop_options_text.add_observer_obj(
             UI.dropdown_stop_options_changed,
             UI.dropdown_stop,
@@ -862,6 +1384,7 @@ class UI:
             None
         )
 
+    @staticmethod
     def image(parent: lv.obj, 
               image_dsc: str | lv.image_dsc_t,
               style: lv.style_t,
