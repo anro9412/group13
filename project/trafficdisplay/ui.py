@@ -1368,17 +1368,44 @@ class UI:
         observer: lv.observer_t,
         subject: lv.subject_t
     ):
+        """
+        dropdown_stop_options_changed is a static method that is used by
+        Bindings.dropdown_stop_options_text's observer, which happens whenever
+        Bindings.dropdown_stop_options_text is changed mainly by the class
+        TrafficManager.
+
+        It gets the current Bindings.dropdown_stop_options_text, and updates
+        UI.dropdown_stop options to currently available stop_options, and sets
+        selected to the Bindings.stop_selected_index_new int value, making it
+        possible to keep the old selected stop if available within the new
+        options text. At last UI.dropdown_stop.send_event is called for
+        lv.EVENT.VALUE_CHANGED calling the Event.dropdown_selected method
+        which triggers the process of departure, text and label updates.
+        """
+        # get Bindings.dropdown_stop_options text
         dropdown_stop_options = subject.get_string()
 
+        # IF Bindings.dropdown_stop_options text is an empty string return
+        # Mainly happens durings startup of Traffic Display when no
+        # stop_options are available yet, right as the
+        # UI.dropdown_stop_observer_initialize method is ran. Which triggeres
+        # the Binding.dropdown_stop_options_text obsever to run
+        # UI.dropdown_stop_options_changed when initialized.
         if not dropdown_stop_options:
             return
 
+        # set UI.dropdown_stop options to Bindings.dropdown_stop_options text
         UI.dropdown_stop.set_options(
             dropdown_stop_options
         )
+        # set UI.dropdown_stop selected to Bindings.stop_selected_index_new
+        # int value
         UI.dropdown_stop.set_selected(
             Bindings.stop_selected_index_new.get_int()
         )
+        # trigger UI.dropdown_stop Event.dropdown_selected with
+        # lv.EVENT.VALUE_CHANGED, starting the process of departure, text and
+        # label updates
         UI.dropdown_stop.send_event(
             lv.EVENT.VALUE_CHANGED,
             None
@@ -1390,7 +1417,15 @@ class UI:
               style: lv.style_t,
               part: lv.part_t | lv.style_selector_t = lv.PART.MAIN
               ) -> lv.image:
+        """
+        image is a static method, which creates a lv.image object within its
+        parent, using the source filepath or a lv.image_dsc_t object to set
+        the source for the image. It also takes one style: lv.style_t and part:
+        lv.part_t | lv.style_selector_t as arguments. Antialiasing for the
+        image is set to True.
 
+        The method returns the image as a lv.image object.
+        """
         image = lv.image(parent)
         image.set_src(image_dsc)
         image.add_style(style, part)
@@ -1408,55 +1443,132 @@ class UI:
         position: str | None = None,
         train_number: str | None = None
     ):
+        """
+        container_departures_add_row is a static method used by the class
+        TrafficManager to add departures within the UI.container_departures,
+        which happens whenever a new stop is selected within UI.dropdown_stop
+        options or when the departures need to be updated. The method has
+        preset styles and positions from the class Style for each newly added
+        row (container) and its labels.
+
+        Parameter information:
+        ```
+            transport_type: str | None <-- Determines the style format being
+                used on the LINE item:
+                    "bus" <-- gives Style.LABEL_LINE_ITEM with
+                        Style.INITIALS_RED
+                    "train" <-- gives Style.LABEL_LINE_ITEM_TRAIN with
+                        Style.INITIALS_TURQUOISE and train_number with
+                        Style.LABEL_LINE_ITEM_TRAIN_ID
+                    "ferry" <-- gives Style.LABEL_LINE_ITEM with
+                        Style.INITIALS_BLUE
+                    ELSE <-- gives Style.LABEL_LINE_ITEM with
+                        Style.INITIALS_PURPLE
+            time: str | None <-- Determines original scheduled time within
+                TIME item.
+            delay_mins: int | None <-- Determines the TIME item format being
+                used and its new estimated time for departure.
+                IF NOT delay_mins or time == "-":
+                    time is displayed as original scheduled time.
+                ELSE:
+                    time is displayed as strike_through, and new estimated
+                    time for departure is displayed as Colors.TEXT_LATE
+                    # ORANGE.
+            line: str | None <-- Determines the text of the label within LINE
+                item.
+            destination: str | None <-- Determines text of the label within
+                DESTINATION item.
+            position: str | None <-- Determines the text of the label within
+                POS item.
+            train_number: str | None <-- Determines the text of the label for
+                train_number within LINE item.
+        ```
+
+        General notice:
+        * When time, line, destination, position or train_number is set to
+        None or an empty string, they are respectively assigned to be "-".
+        """
+        # create row as panel_departures_item within UI.container_departures
+        # with Style.PANEL_DEPARTURES_ITEM
         panel_departures_item = UI.obj(
             UI.container_departures,
             Style.PANEL_DEPARTURES_ITEM
         )
-        transport_type_selected = \
-        Bindings.transport_type_selected_text_bare.get_string().lower()
+        # TODO unused variable transport_type_selected
+        # TODO Traffic Manager determines transport type that is sent to method
+        # TODO transport_type_selected = \
+        # TODO Bindings.transport_type_selected_text_bare.get_string().lower()
 
+        # Assign parameter to parameter IF parameter is None or "" assign "-".
         time = time or "-"
         line = line or "-"
         destination = destination or "-"
         position = position or "-"
         train_number = train_number or "-"
 
-        if delay_mins is None or time == "-":
+        # IF not delay_mins or time == "-"
+        # Display time as original scheduled time
+        # This happens if delay_mins == None or int value 0 or time was
+        # assigned with "-" due to usually being None
+        # Normal situation is when there is no time delay and scheduled
+        # departure time is present
+        if not delay_mins or time == "-":
             UI.label(
                 panel_departures_item,
                 time, Style.LABEL_TIME_ITEM
             )
 
+        # ELSE
+        # scheduled departure time is present with an estimated delay set
         else:
+            # split time from ":" into hours and mins
             hours, mins = time.split(":")
+            # summarize total hours in mins + mins + delay_mins as type int
             total_time_mins = int(hours) * 60 + int(mins) + delay_mins
 
+            # calculate the estimated hour time by using integer division on
+            # the residual of total_time_mins modulus 1440 (whole days)
             hours = (total_time_mins % 1440) // 60
+            # calculate the estimated min time by using the residual of mins
+            # modulus 60 (whole hours) from the residual of total_time_mins
+            # modulus 1440 (whole days)
             mins = (total_time_mins % 1440) % 60
 
+            # convert hours and mins into string
             hours = str(hours)
             mins = str(mins)
 
+            # reimplement a "0" to the beginning of hours and mins IF needed
             if len(hours) == 1:
                 hours = "0" + hours
 
             if len(mins) == 1:
                 mins = "0" + mins
 
+            # join hours and mins by a ":" and assign to time_estimated
             time_estimated = ":".join([hours, mins])
 
+            # initialize a UI.label within panel_departures_item with
+            # time_estimated as text and Style.LABEL_TIME_ITEM_DELAY under
+            # UI.label_time column
             UI.label(
                 panel_departures_item,
                 time_estimated,
                 Style.LABEL_TIME_ITEM_DELAY
             )
 
+            # initialize a UI.label within panel_departures_item with time
+            # text and Style.LABEL_TIME_ITEM_POST under UI.label_time column
             UI.label(
                 panel_departures_item,
                 time,
                 Style.LABEL_TIME_ITEM_POST
             )
 
+        # IF transport_type == "bus"
+        # initialize a UI.label within panel_departures_item with line text
+        # and (Style.LABEL_LINE_ITEM, Style.INITIALS_RED) under
+        # UI.label_line column
         if transport_type == "bus":
             UI.label(
                 panel_departures_item,
@@ -1467,6 +1579,11 @@ class UI:
                     )
             )
 
+        # IF transport_type == "train"
+        # initialize two UI.label within panel_departures_item one with line
+        # text and (Style.LABEL_LINE_ITEM_TRAIN, Style.INITIALS_TURQUOISE) and
+        # one with train_number text and Style.LABEL_LINE_ITEM_TRAIN_ID under
+        # UI.label_line column
         elif transport_type == "train":
             UI.label(
                 panel_departures_item,
@@ -1482,6 +1599,10 @@ class UI:
                 Style.LABEL_LINE_ITEM_TRAIN_ID
             )
 
+        # IF transport_type == "ferry"
+        # initialize a UI.label within panel_departures_item with line text
+        # and (Style.LABEL_LINE_ITEM, Style.INITIALS_BLUE) under
+        # UI.label_line column
         elif transport_type == "ferry":
             UI.label(
                 panel_departures_item,
@@ -1492,6 +1613,10 @@ class UI:
                 )
             )
 
+        # ELSE
+        # initialize a UI.label within panel_departures_item with line text
+        # and (Style.LABEL_LINE_ITEM, Style.INITIALS_PURPLE) under
+        # UI.label_line column
         else:
             UI.label(
                 panel_departures_item,
@@ -1502,12 +1627,17 @@ class UI:
                 )
             )
 
+        # initialize a UI.label within panel_departures_item with destination
+        # text and Style.LABEL_DESTINATION_ITEM under
+        # UI.label_destination column
         UI.label(
             panel_departures_item,
             destination,
             Style.LABEL_DESTINATION_ITEM
         )
 
+        # initialize a UI.label within panel_departures_item with position text
+        # and Style.LABEL_POS_ITEM under UI.label_pos column
         UI.label(
             panel_departures_item,
             position,
