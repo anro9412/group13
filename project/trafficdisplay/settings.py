@@ -2,15 +2,50 @@ import json
 
 
 class Settings:
+    """
+    Settings is a static class that holds responsibility within Traffic
+    Display to load in or save to json files. It has communication with json.
 
+    Attributes:
+    ```
+        saved_default_settings: dict
+        filepath_saved_default_settings: str
+
+        traffic_stops_dict: dict
+        filepath_traffic_stops: str
+    ```
+
+    Currently used json files:
+    ```
+        saved_default_settings.json
+        traffic_stops.json
+    ```
+    """
+    # Saved_default_settings by the user, and its filepath
     saved_default_settings: dict = {}
     filepath_saved_default_settings = "saved_default_settings.json"
 
+    # Currently used traffic_stops, and its filepath
     traffic_stops_dict: dict = {}
     filepath_traffic_stops = "traffic_stops.json"
 
     @staticmethod
     def init() -> tuple[Exception | None, ...]:
+        """
+        init is a static method that initializes saved_default_settings: dict
+        and traffic_stops_dict, with their currently available elements with
+        hardcoded factory settings and finally with stored settings on the
+        device.
+
+        Returns:
+        ```
+            (
+                exception_saved_default_settings: Exception | None,
+                exception_saved_traffic_stops: Exception | None
+            )
+        ```
+        """
+        # Factory saved_default_settings
         Settings.saved_default_settings = {
             "transport_type_selected_text": "\uE900   Ferry",
             "transport_type_selected_text_bare": "Ferry",
@@ -22,6 +57,7 @@ class Settings:
                 "Ferry · Karlskrona Centralstation"
         }
 
+        # Factory traffic_stops settings
         Settings.traffic_stops_dict = {
             "740011100:24310": {
                 "stop": "M\u00f6lletorp",
@@ -786,15 +822,30 @@ class Settings:
                 ]
             }
         }
+        # Call Settings.load_saved_file method, to load in currently available
+        # settings on the device, with filepaths argument as
+        # Settings.filepath_saved_default_settings, and data_dict argument as
+        # Settings.saved_default_settings: dict
+        # Catch (store) any exception instance that was returned from
+        # Settings.load_saved_file method, within
+        # exception_saved_default_settings
         exception_saved_default_settings = Settings.load_saved_file(
             Settings.filepath_saved_default_settings,
             Settings.saved_default_settings
         )
+        # Call Settings.load_saved_file method, to load in currently available
+        # settings on the device, with filepaths argument as
+        # Settings.filepath_traffic_stops, and data_dict argument as
+        # Settings.traffic_stops_dict
+        # Catch (store) any exception instance that was returned from
+        # Settings.load_saved_file method, within
+        # exception_saved_traffic_stops
         exception_saved_traffic_stops = Settings.load_saved_file(
             Settings.filepath_traffic_stops,
             Settings.traffic_stops_dict
         )
 
+        # return the potential exception instances as tuple
         return (
             exception_saved_default_settings,
             exception_saved_traffic_stops
@@ -805,24 +856,43 @@ class Settings:
         filepaths: str,
         data_dict: dict
     ) -> None | Exception:
+        """
+        load_saved_file is a static method that loads in a json file as a dict
+        from filepaths, and clears the data_dict and updates it with the
+        loaded json file.
 
+        Returns:
+        ```
+            exception: None | Exception
+        ```
+        """
+
+        # Assign filepaths_is_str with True IF filepaths is of type string,
+        # ELSE False
         filepaths_is_str = isinstance(filepaths, str)
         exception = None
 
+        # IF filepaths is not of data type string return TypeError instance
         if not filepaths_is_str:
             return TypeError()
 
+        # TRY loading the json file as a dict
         try:
             with open(filepaths, 'r') as source:
                 saved_json: dict = json.load(source)
 
+            # if saved_json is of type dict
             if isinstance(saved_json, dict):
+                # clear data_dict of its current elements, and update it
+                # with the saved_json dict
                 data_dict.clear()
                 data_dict.update(saved_json)
 
             else:
+                # Assign TypeError instance to exception
                 exception = TypeError()
 
+        # EXCEPT Exception as e, and assign e instance to exception
         except Exception as e:
             exception = e
 
@@ -830,6 +900,10 @@ class Settings:
 
     @staticmethod
     def get_saved_default_settings():
+        """
+        get_saved_default_settings is a static method which returns the
+        currently loaded Settings.saved_default_settings: dict
+        """
         return Settings.saved_default_settings
 
     @staticmethod
@@ -837,18 +911,34 @@ class Settings:
         filepath: str,
         save_dict: dict
     ) -> None | Exception:
+        """
+        save_to_files is a static method which saves save_dict to filepath as a
+        json file.
 
+        Returns:
+        ```
+            exception: None | Exception
+        ```
+        """
+
+        # Assign filepath_is_string with True IF filepath is of type string,
+        # ELSE False
         filepath_is_string = isinstance(filepath, str)
         exception = None
 
+        # IF filepath is not of data type string return TypeError instance
         if not filepath_is_string:
             return TypeError()
 
+        # TRY saving save_dict to json file
         try:
+            # Format save_dict into string JSON-format as serialized,
+            # and save serialized as a json file with filepath
             serialized = json.dumps(save_dict)
             with open(filepath, 'w') as destination:
                 destination.write(serialized)
 
+        # EXCEPT Exception as e, and assign e instance to exception
         except Exception as e:
             exception = e
 
@@ -858,9 +948,28 @@ class Settings:
     def save_to_default_settings(
         new_default_settings: dict
     ) -> None | Exception:
+        """
+        save_to_default_settings is a static method which overrides
+        Settings.saved_default_settings with new_default_settings, and uses
+        Settings.save_to_files method to save newly assigned
+        Settings.saved_default_settings to
+        Settings.filepath_saved_default_settings as arguments.
 
+        Returns:
+        ```
+            exception: None | Exception
+        ```
+        """
+        # Override Settings.saved_default_settings by assigning
+        # new_default_settings: dict to Settings.saved_default_settings
         Settings.saved_default_settings = new_default_settings
         exception = None
+        # Call Settings.save_to_files method, with
+        # Settings.filepath_saved_default_settings and newly assigned
+        # Settings.saved_default_settings as arguments
+        # Catch (store) any exception instance that was returned from
+        # Settings.save_to_files method, within
+        # exception
         exception = Settings.save_to_files(
             Settings.filepath_saved_default_settings,
             Settings.saved_default_settings
